@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -39,6 +39,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { filterGroups } from '@/lib/logic';
 
 export function Dashboard() {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -76,6 +77,7 @@ export function Dashboard() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line
     loadGroups();
   }, [loadGroups]);
 
@@ -618,18 +620,13 @@ export function Dashboard() {
       }),
   };
 
-  // Filter groups based on search query
-  const filterGroups = useCallback((groupList: Group[]) => {
-    if (!searchQuery.trim()) return groupList;
-    const query = searchQuery.toLowerCase();
-    return groupList.filter(g =>
-      g.title.toLowerCase().includes(query) ||
-      g.items.some(tab => tab.title.toLowerCase().includes(query) || tab.url.toLowerCase().includes(query))
-    );
-  }, [searchQuery]);
+  const pinnedGroups = useMemo(() =>
+    filterGroups(groups.filter(g => g.pinned), searchQuery),
+  [groups, searchQuery]);
 
-  const pinnedGroups = filterGroups(groups.filter(g => g.pinned));
-  const unpinnedGroups = filterGroups(groups.filter(g => !g.pinned));
+  const unpinnedGroups = useMemo(() =>
+    filterGroups(groups.filter(g => !g.pinned), searchQuery),
+  [groups, searchQuery]);
 
   // Export handler
   const handleExport = async () => {
@@ -749,11 +746,11 @@ export function Dashboard() {
                 <section className="max-w-3xl mx-auto w-full">
                     <h2 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wider flex items-center gap-2"><Pin className="h-4 w-4" />Pinned</h2>
                     <SortableContext
-              items={groups.filter(g => g.pinned).map(g => g.id)}
+              items={pinnedGroups.map(g => g.id)}
               strategy={isShiftPressed ? undefined : verticalListSortingStrategy}
           >
             <div className="flex flex-col gap-4">
-            {groups.filter(g => g.pinned).map(group => (
+            {pinnedGroups.map(group => (
               <GroupCard
                 key={group.id}
                 group={group}
