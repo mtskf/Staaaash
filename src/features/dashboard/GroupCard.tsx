@@ -7,7 +7,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SortableTabCard } from './TabCard';
-import { GripVertical, Trash2, ChevronDown, ChevronRight, Pin, ArrowUpRight } from 'lucide-react';
+import { GripVertical, Trash2, ChevronDown, ChevronRight, Pin, ArrowUpRight, Pencil } from 'lucide-react';
 import { cn, formatRelativeTime } from '@/lib/utils'; // Keep this for now
 
 interface GroupCardProps {
@@ -109,9 +109,9 @@ export function GroupCard({
         isSelected && "ring-2 ring-primary border-primary"
       )}>
         <CardHeader className="p-3 flex flex-row items-center justify-between space-y-0 cursor-default">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-1 min-w-0 mr-4">
              {/* Drag Handle */}
-            <div {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground">
+            <div {...attributes} {...listeners} tabIndex={-1} className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground">
                <GripVertical className="h-4 w-4" />
             </div>
 
@@ -132,17 +132,30 @@ export function GroupCard({
                   value={newTitle}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTitle(e.target.value)}
                   onBlur={handleTitleSubmit}
-                  onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && handleTitleSubmit()}
+                  onKeyDown={(e: React.KeyboardEvent) => {
+                    if (e.key === 'Enter') handleTitleSubmit();
+                    if (e.key === 'Escape') {
+                      setNewTitle(group.title); // Revert to original
+                      setIsEditing(false);
+                      onRenameStop?.();
+                    }
+                  }}
                   className="h-7 w-full"
                 />
               ) : (
-                <h3
-                  className="text-base font-medium truncate cursor-text hover:underline"
-                  onClick={() => setIsEditing(true)}
-                  title="Click to rename"
-                >
-                  {group.title}
-                </h3>
+                <div className="flex items-center gap-1">
+                  <h3
+                    className="text-sm font-medium truncate cursor-text hover:underline"
+                    onClick={() => setIsEditing(true)}
+                    title="Click to rename"
+                  >
+                    {group.title}
+                  </h3>
+                  <Pencil
+                    className="h-3 w-3 text-muted-foreground shrink-0 cursor-pointer hover:text-foreground"
+                    onClick={() => setIsEditing(true)}
+                  />
+                </div>
               )}
               <div className="text-[10px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
                 <span>{group.createdAt ? formatRelativeTime(group.createdAt) : 'Unknown date'}</span>
@@ -165,7 +178,7 @@ export function GroupCard({
              <Button
                 variant="ghost"
                 size="icon"
-                className={cn("h-7 w-7", group.pinned ? "text-primary" : "text-muted-foreground")}
+                className={cn("h-7 w-7", group.pinned ? "text-yellow-500" : "text-muted-foreground")}
                 onClick={() => onUpdateGroup(group.id, { pinned: !group.pinned })}
                 title={group.pinned ? "Unpin group" : "Pin group"}
              >
@@ -174,7 +187,7 @@ export function GroupCard({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-destructive/70 hover:text-destructive"
+              className="h-7 w-7 text-red-500 hover:text-red-600"
               onClick={() => onRemoveGroup(group.id)}
             >
               <Trash2 className="h-3.5 w-3.5" />

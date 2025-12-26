@@ -26,7 +26,7 @@ export const TabCard = forwardRef<HTMLDivElement, TabCardProps & React.HTMLAttri
             isSelected && "ring-1 ring-primary border-primary bg-accent"
           )}>
           <div className="flex items-center gap-2 overflow-hidden">
-             <div className="text-muted-foreground/50 cursor-grab active:cursor-grabbing">
+             <div tabIndex={-1} className="text-muted-foreground/50 cursor-grab active:cursor-grabbing">
                 <GripVertical className="h-4 w-4" />
              </div>
             {tab.favIconUrl && (
@@ -34,7 +34,10 @@ export const TabCard = forwardRef<HTMLDivElement, TabCardProps & React.HTMLAttri
             )}
             <span className="truncate text-sm font-medium">{tab.title}</span>
           </div>
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className={cn(
+            "flex items-center gap-1 transition-opacity",
+            isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          )}>
             <Button
               variant="ghost"
               size="icon"
@@ -51,7 +54,7 @@ export const TabCard = forwardRef<HTMLDivElement, TabCardProps & React.HTMLAttri
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6 text-destructive hover:text-destructive"
+              className="h-6 w-6 text-red-500 hover:text-red-600"
               onClick={(e: React.MouseEvent) => {
                 e.stopPropagation(); // Prevent drag start
                 onRemove(tab.id);

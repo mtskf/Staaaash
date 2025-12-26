@@ -165,10 +165,17 @@ export function Dashboard() {
                 const targetGroup = groups.find(g => g.id === targetGroupId);
 
                 if (sourceGroup && targetGroup) {
-                    const newItems = [...targetGroup.items, ...sourceGroup.items];
+                    // Merge and deduplicate by URL
+                    const seenUrls = new Set<string>();
+                    const mergedItems = [...targetGroup.items, ...sourceGroup.items].filter(tab => {
+                        if (seenUrls.has(tab.url)) return false;
+                        seenUrls.add(tab.url);
+                        return true;
+                    });
+
                     const newGroups = groups
                         .filter(g => g.id !== sourceGroup.id)
-                        .map(g => g.id === targetGroup.id ? { ...g, items: newItems } : g);
+                        .map(g => g.id === targetGroup.id ? { ...g, items: mergedItems } : g);
 
                     await updateGroups(newGroups);
                 }
@@ -319,14 +326,7 @@ export function Dashboard() {
       const items = getFlattenedItems();
       const currentIndex = items.findIndex(item => item.id === selectedId);
 
-      // Handle Renaming ('e')
-      if (e.key === 'e' && !e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        if (currentIndex !== -1 && items[currentIndex].type === 'group') {
-            e.preventDefault();
-            setRenamingGroupId(items[currentIndex].id);
-        }
-        return;
-      }
+
 
       // Handle Reordering (Shift + ArrowUp/Down)
       if (e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
@@ -378,7 +378,7 @@ export function Dashboard() {
                                      return { ...g, items: g.items.filter(t => t.id !== currentItem.id) };
                                  }
                                  if (g.id === nextGroup.id) {
-                                     return { ...g, items: [...g.items, currentItem.data as TabItem], collapsed: false };
+                                     return { ...g, items: [currentItem.data as TabItem, ...g.items], collapsed: false };
                                  }
                                  return g;
                              });
@@ -483,8 +483,8 @@ export function Dashboard() {
           if (currentIndex !== -1) {
             const item = items[currentIndex];
 
-            // Restore: Cmd/Ctrl + Enter OR Shift + Enter
-            if (e.metaKey || e.ctrlKey || e.shiftKey) {
+            // Restore: Cmd/Ctrl + Enter
+            if (e.metaKey || e.ctrlKey) {
                if (item.type === 'group') {
                  restoreGroup(item.id);
                } else if (item.type === 'tab' && item.groupId) {
@@ -496,6 +496,12 @@ export function Dashboard() {
                    setRenamingGroupId(item.id);
                }
             }
+          } else {
+             // Handle Renaming (Enter without modifiers)
+             if (currentIndex !== -1 && items[currentIndex].type === 'group') {
+                e.preventDefault();
+                setRenamingGroupId(items[currentIndex].id);
+             }
           }
           break;
         }
