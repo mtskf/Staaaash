@@ -14,12 +14,22 @@ chrome.action.onClicked.addListener(async () => {
   const tabsToArchive = tabs.filter(t => t.url && !t.url.startsWith(extensionPrefix));
 
   // 2. Format tabs
-  const tabItems: TabItem[] = tabsToArchive.map(t => ({
-    id: t.id?.toString() || uuidv4(),
-    url: t.url || '',
-    title: t.title || 'New Tab',
-    favIconUrl: t.favIconUrl
-  }));
+  // 2. Format tabs (Dedup by URL)
+  const uniqueTabs = new Map<string, TabItem>();
+
+  tabsToArchive.forEach(t => {
+      const url = t.url || '';
+      if (!uniqueTabs.has(url)) {
+          uniqueTabs.set(url, {
+            id: t.id?.toString() || uuidv4(),
+            url: url,
+            title: t.title || 'New Tab',
+            favIconUrl: t.favIconUrl
+          });
+      }
+  });
+
+  const tabItems: TabItem[] = Array.from(uniqueTabs.values());
 
   if (tabItems.length === 0) return;
 
