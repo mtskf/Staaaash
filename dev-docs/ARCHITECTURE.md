@@ -30,7 +30,7 @@ Staaaash is a Chrome Extension designed to manage and organize browser tabs into
 ```
 src/
 ├── background/      # Extension background service worker
-├── components/ui/   # Generic UI components (shadcn/ui)
+├── components/ui/   # Generic UI components (shadcn/ui, sonner)
 ├── features/        # Feature-specific logic (Dashboard, etc.)
 ├── lib/             # Utilities (storage, utils)
 ├── types/           # TypeScript definitions

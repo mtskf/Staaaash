@@ -11,3 +11,11 @@
 ## 2024-12-26: Tailwind Version
 - **Decision**: Stick with Tailwind CSS v3.
 - **Rationale**: v4 introduced breaking changes interacting with the PostCSS config and shadcn/ui themes. Downgraded to v3 for stability.
+
+## 2024-12-26: Toast Notifications
+- **Decision**: Use `sonner`.
+- **Rationale**: Lightweight, customizable, and visually appealing toast library that integrates well with shadcn/ui styling.
+
+## 2024-12-26: Simplification
+- **Decision**: Remove tooltips.
+- **Rationale**: Prioritize clean UI over redundant helpers. Shortcuts are documented in empty state and help section.

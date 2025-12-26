@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.0] - 2025-12-26
+### Added
+- **Search**: Filter groups and tabs by title or URL.
+- **Data Management**: Export to JSON and Import functionality.
+- **Empty State**: Friendly illustration and guidance when no groups exist.
+- **Feedback**: Toast notifications for operations and storage errors (using `sonner`).
+- **Confirmation**: Dialog for deleting groups.
+- **Selection Logic**: Smart list selection when deleting/restoring items.
+- **Logo**: Replaced text header with Staaaash logo.
+
+### Changed
+- **Shortcut**: Updated Archive Tabs shortcut to `⌘+Shift+.` (Mac) / `Ctrl+Shift+.` (Windows).
+- **UI Clean-up**: Removed button tooltips for a cleaner interface.
+- **Performance**: Prevent duplicate "Collections" tabs from opening.
+
 ## [0.4.0] - 2025-12-26
 ### Added
 - **Tooltips with Shortcuts**: Hover over action buttons to see button names and keyboard shortcuts (using `<kbd>` styling).

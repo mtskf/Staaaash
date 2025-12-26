@@ -11,7 +11,8 @@
 
 ## UI/UX
 - **Styling**: Tailwind CSS v3
-- **Components**: shadcn/ui (Radix UI primitives)
+- **Components**: shadcn/ui (Radix UI primitives), @radix-ui/react-alert-dialog
+- **Notifications**: sonner
 - **Icons**: lucide-react
 - **Drag & Drop**: @dnd-kit/core, @dnd-kit/sortable
 
