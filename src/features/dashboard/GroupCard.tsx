@@ -22,6 +22,7 @@ interface GroupCardProps {
   selectedTabId?: string | null;
   isRenaming?: boolean;
   onRenameStop?: () => void;
+  isMerging?: boolean;
 }
 
 export function GroupCard({
@@ -35,7 +36,8 @@ export function GroupCard({
   isSelected,
   selectedTabId,
   isRenaming,
-  onRenameStop
+  onRenameStop,
+  isMerging
 }: GroupCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [newTitle, setNewTitle] = useState(group.title);
@@ -82,7 +84,9 @@ export function GroupCard({
   });
 
   const style = {
-    transform: CSS.Translate.toString(transform),
+    // If merging is active and this item is NOT the one being dragged,
+    // suppress the transform so it doesn't move out of the way.
+    transform: isMerging && !isDragging ? undefined : CSS.Translate.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
   };

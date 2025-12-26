@@ -67,3 +67,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  .cursor-copy-important {
+    cursor: copy !important;
+  }
+  .cursor-grabbing-important {
+    cursor: grabbing !important;
+  }
+}

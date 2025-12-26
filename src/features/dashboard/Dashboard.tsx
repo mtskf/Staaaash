@@ -570,6 +570,7 @@ export function Dashboard() {
                                     selectedTabId={selectedId}
                                     isRenaming={renamingGroupId === group.id}
                                     onRenameStop={() => setRenamingGroupId(null)}
+                                    isMerging={isShiftPressed}
                                 />
                             ))}
                         </div>
@@ -598,6 +599,7 @@ export function Dashboard() {
                                 selectedTabId={selectedId}
                                 isRenaming={renamingGroupId === group.id}
                                 onRenameStop={() => setRenamingGroupId(null)}
+                                isMerging={isShiftPressed}
                             />
                         ))}
                     </div>
@@ -608,8 +610,7 @@ export function Dashboard() {
         {createPortal(
             <DragOverlay
                 dropAnimation={dropAnimation}
-                className={isShiftPressed ? 'cursor-copy' : 'cursor-grabbing'}
-                style={{ cursor: isShiftPressed ? 'copy' : 'grabbing' }}
+                className={isShiftPressed ? 'cursor-copy-important' : 'cursor-grabbing-important'}
             >
                 {activeItem && activeId ? (
                    'items' in activeItem ? (
