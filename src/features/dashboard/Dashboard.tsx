@@ -606,7 +606,11 @@ export function Dashboard() {
         </div>
 
         {createPortal(
-            <DragOverlay dropAnimation={dropAnimation}>
+            <DragOverlay
+                dropAnimation={dropAnimation}
+                className={isShiftPressed ? 'cursor-copy' : 'cursor-grabbing'}
+                style={{ cursor: isShiftPressed ? 'copy' : 'grabbing' }}
+            >
                 {activeItem && activeId ? (
                    'items' in activeItem ? (
                        <div className="w-full max-w-3xl">
