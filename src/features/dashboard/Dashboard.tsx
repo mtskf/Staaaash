@@ -326,14 +326,7 @@ export function Dashboard() {
       const items = getFlattenedItems();
       const currentIndex = items.findIndex(item => item.id === selectedId);
 
-      // Handle Renaming ('e')
-      if (e.key === 'e' && !e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey) {
-        if (currentIndex !== -1 && items[currentIndex].type === 'group') {
-            e.preventDefault();
-            setRenamingGroupId(items[currentIndex].id);
-        }
-        return;
-      }
+
 
       // Handle Reordering (Shift + ArrowUp/Down)
       if (e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
@@ -385,7 +378,7 @@ export function Dashboard() {
                                      return { ...g, items: g.items.filter(t => t.id !== currentItem.id) };
                                  }
                                  if (g.id === nextGroup.id) {
-                                     return { ...g, items: [...g.items, currentItem.data as TabItem], collapsed: false };
+                                     return { ...g, items: [currentItem.data as TabItem, ...g.items], collapsed: false };
                                  }
                                  return g;
                              });
@@ -503,6 +496,12 @@ export function Dashboard() {
                    setRenamingGroupId(item.id);
                }
             }
+          } else {
+             // Handle Renaming (Enter without modifiers)
+             if (currentIndex !== -1 && items[currentIndex].type === 'group') {
+                e.preventDefault();
+                setRenamingGroupId(items[currentIndex].id);
+             }
           }
           break;
         }
