@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -61,13 +61,20 @@ export function Dashboard() {
   }, [loadGroups]);
 
   const [isShiftPressed, setIsShiftPressed] = useState(false);
+  const shiftPressedRef = useRef(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Shift') setIsShiftPressed(true);
+        if (e.key === 'Shift') {
+            setIsShiftPressed(true);
+            shiftPressedRef.current = true;
+        }
     };
     const handleKeyUp = (e: KeyboardEvent) => {
-        if (e.key === 'Shift') setIsShiftPressed(false);
+        if (e.key === 'Shift') {
+             setIsShiftPressed(false);
+             shiftPressedRef.current = false;
+        }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -152,7 +159,7 @@ export function Dashboard() {
         }
 
         if (targetGroupId && active.id !== targetGroupId) {
-            if (isShiftPressed) {
+            if (shiftPressedRef.current) {
                 // Merge Groups
                 const sourceGroup = groups.find(g => g.id === active.id);
                 const targetGroup = groups.find(g => g.id === targetGroupId);
