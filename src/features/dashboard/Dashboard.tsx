@@ -483,8 +483,8 @@ export function Dashboard() {
           if (currentIndex !== -1) {
             const item = items[currentIndex];
 
-            // Restore: Cmd/Ctrl + Enter OR Shift + Enter
-            if (e.metaKey || e.ctrlKey || e.shiftKey) {
+            // Restore: Cmd/Ctrl + Enter
+            if (e.metaKey || e.ctrlKey) {
                if (item.type === 'group') {
                  restoreGroup(item.id);
                } else if (item.type === 'tab' && item.groupId) {
