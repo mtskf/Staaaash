@@ -7,19 +7,23 @@ Puuuush is a Chrome Extension designed to manage and organize browser tabs into 
 ### 1. New Tab Dashboard (`src/features/dashboard`)
 - **Framework**: React + Vite
 - **Styling**: Tailwind CSS + shadcn/ui (Radix UI)
-- **State Management**: React `useState` / `useEffect` + Local Component State
-- **Drag & Drop**: `@dnd-kit` for complex drag-and-drop interactions (Groups and Tabs within groups).
+- **State Management**: React `useState` / `useEffect` + Local Component State.
+- **Drag & Drop**: `@dnd-kit` (Core, Sortable, Utilities) for complex interactions.
+    - `GroupCard`: Handles group rendering and internal sortable context.
+    - `TabCard` / `SortableTabCard`: Separated for correct DragOverlay behavior.
+    - `Dashboard`: Orchestrates the main DndContext and state updates.
 
 ### 2. Data Persistence (`src/lib/storage.ts`)
 - **Storage**: `chrome.storage.sync`
 - **Schema**:
   - `groups`: Array of `Group` objects.
-  - `Group`: Contains `id`, `title`, `items` (tabs), `pinned`, `collapsed`.
+  - `Group`: Contains `id`, `title`, `items` (tabs), `pinned` (boolean), `collapsed` (boolean), `order` (number), `createdAt` (timestamp).
   - `TabItem`: Contains `id`, `url`, `title`, `favIconUrl`.
 
-### 3. Background Scripts (`src/background` - *Planned/Minimal*)
-- Currently minimal usage.
-- Future: Context menus, commands handling.
+### 3. Background Scripts (`src/background`)
+- **Archiving**: Handles the click on the extension icon to archive current window tabs.
+- **Context Menu**: Manages the "Open Collections" context menu item.
+- **Bundling**: Built with `esbuild` for proper module handling in the Service Worker environment.
 
 ## Directory Structure
 ```

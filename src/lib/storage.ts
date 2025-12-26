@@ -39,7 +39,14 @@ export const storage = {
 
   addGroup: async (group: Group) => {
     const data = await storage.get();
-    const newGroups = [...data.groups, group];
+    const minOrder = data.groups.length > 0
+      ? Math.min(...data.groups.map(g => g.order || 0))
+      : 0;
+
+    // Assign an order lower than the current minimum to place it at the start
+    const newGroup = { ...group, order: minOrder - 1 };
+
+    const newGroups = [...data.groups, newGroup];
     await storage.set({ groups: newGroups });
     return newGroups;
   },

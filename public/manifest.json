@@ -6,10 +6,12 @@
   "permissions": [
     "tabs",
     "storage",
-    "favicon"
+    "favicon",
+    "contextMenus"
   ],
-  "chrome_url_overrides": {
-    "newtab": "index.html"
+  "action": {},
+  "background": {
+    "service_worker": "background.js"
   },
   "icons": {
     "16": "vite.svg",

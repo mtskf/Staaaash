@@ -5,23 +5,28 @@ A modern, minimalist tab manager extension for Chrome that helps users declutter
 
 ## Core Features
 ### 1. Tab Management
-- **Save Tabs**: Save all open tabs in the current window to a new group.
-- **Restore Tabs**: Open a saved group's tabs (all at once or individually).
+- **Save Tabs**: Save all open tabs (excluding extension pages) in the current window to a new group.
+- **Restore Tabs**:
+    - **Group Restore**: Open all tabs in a group via the "Restore" button.
+    - **Individual Restore**: Open single tabs via the external link icon.
+    - **Original Tabs**: Original tabs are closed after saving (Archiving).
 - **Remove Tabs**: Delete individual tabs from a group.
 
 ### 2. Group Management
 - **Grouping**: Organize tabs into named collections.
-- **Renaming**: Edit group titles.
+- **Renaming**: Edit group titles (Auto-focus on creation).
 - **Reordering**: Drag and drop groups to change their order.
+- **Sorting**: New groups are automatically added to the top of the list.
 - **Collapsing**: Collapse/Expand groups to save space.
-- **Pinning**: Pin important groups to the top.
-- **Merging**: Merge two groups into one.
+- **Pinning**: Pin important groups to the separate "Pinned" section at the top.
+- **Merging**: Merge two groups into one (Planned).
 
 ### 3. Sync
 - **Cross-Device**: Sync groups and tabs across devices using `chrome.storage.sync`.
 
 ### 4. UI/UX
-- **New Tab Override**: Replaces the default new tab page.
+- **New Tab Override**: Replaces the default new tab page (Dashboard).
+- **Context Menu**: Right-click extension icon to "Open Collections" without archiving.
 - **Dark Mode**: Default dark theme.
 - **Drag and Drop**: Intuitive drag-and-drop for tabs and groups.
 

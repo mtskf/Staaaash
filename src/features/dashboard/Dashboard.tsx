@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   DndContext,
   DragOverlay,
-  closestCorners,
+  pointerWithin,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -17,24 +17,19 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  rectSortingStrategy
+  verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import type { Group, TabItem } from '@/types';
 import { storage } from '@/lib/storage';
-import { useTabs } from '@/hooks/useTabs';
 import { GroupCard } from './GroupCard';
 import { TabCard } from './TabCard';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Save } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
 export function Dashboard() {
   const [groups, setGroups] = useState<Group[]>([]);
-  const { saveCurrentWindow } = useTabs();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<Group | TabItem | null>(null);
-  const [sessionInput, setSessionInput] = useState("");
+  const [autoFocusGroupId, setAutoFocusGroupId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -46,31 +41,62 @@ export function Dashboard() {
   const loadGroups = useCallback(async () => {
     const data = await storage.get();
     setGroups(data.groups.sort((a, b) => a.order - b.order));
+
+    // Check for auto-focus request
+    const params = new URLSearchParams(window.location.search);
+    const newGroupId = params.get('newGroupId');
+    if (newGroupId) {
+       // Clear query param to prevent re-focus on refresh
+       window.history.replaceState({}, '', 'index.html');
+       // We'll pass this ID down to identify which group needs focus
+       // For simplicity, we can just use a local state or pass it to a context.
+       // However, since we re-render here, let's store it or pass it.
+       // Actually, we can just set a temporary state 'autoFocusGroupId'
+       setAutoFocusGroupId(newGroupId);
+    }
   }, []);
 
   useEffect(() => {
     loadGroups();
   }, [loadGroups]);
 
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Helper to get flattened list of visible items for navigation
+  const getFlattenedItems = useCallback(() => {
+    const items: Array<{ id: string, type: 'group' | 'tab', groupId?: string, data?: any }> = [];
+
+    const processGroup = (group: Group) => {
+      items.push({ id: group.id, type: 'group', data: group });
+      if (!group.collapsed) {
+        group.items.forEach(tab => {
+          items.push({ id: tab.id, type: 'tab', groupId: group.id, data: tab });
+        });
+      }
+    };
+
+    // Pinned groups first
+    groups.filter(g => g.pinned).forEach(processGroup);
+    // Unpinned groups second
+    groups.filter(g => !g.pinned).forEach(processGroup);
+
+    return items;
+  }, [groups]);
+
+
   const updateGroups = async (newGroups: Group[]) => {
     setGroups(newGroups);
     await storage.updateGroups(newGroups);
   };
 
-  const handleSaveSession = async () => {
-    const name = sessionInput.trim() || `Session ${new Date().toLocaleDateString()}`;
-    const newGroup = await saveCurrentWindow(name);
-    setGroups([...groups, newGroup]);
-    setSessionInput("");
-    await storage.addGroup(newGroup);
-  };
+
 
   // Drag Handlers
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    const { data } = active.data.current || {};
+    const currentData = active.data.current;
     setActiveId(active.id as string);
-    setActiveItem(data?.group || data?.tab);
+    setActiveItem(currentData?.group || currentData?.tab);
   };
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -195,6 +221,191 @@ export function Dashboard() {
       await storage.updateGroups(newGroups);
   };
 
+  const restoreGroup = async (id: string) => {
+    const group = groups.find(g => g.id === id);
+    if (!group) return;
+
+    for (const item of group.items) {
+      await chrome.tabs.create({ url: item.url, active: false });
+    }
+    await removeGroup(id);
+  };
+
+  const restoreTab = async (groupId: string, tabId: string) => {
+    const group = groups.find(g => g.id === groupId);
+    if (!group) return;
+    const tab = group.items.find(t => t.id === tabId);
+    if (!tab) return;
+
+    await chrome.tabs.create({ url: tab.url, active: false });
+    await removeTab(groupId, tabId);
+  };
+
+  // Renaming state
+  const [renamingGroupId, setRenamingGroupId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = async (e: KeyboardEvent) => {
+      // Ignore if user is typing in an input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      const items = getFlattenedItems();
+      const currentIndex = items.findIndex(item => item.id === selectedId);
+
+      // Handle Renaming ('e')
+      if (e.key === 'e' && !e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        if (currentIndex !== -1 && items[currentIndex].type === 'group') {
+            e.preventDefault();
+            setRenamingGroupId(items[currentIndex].id);
+        }
+        return;
+      }
+
+      // Handle Reordering (Shift + ArrowUp/Down)
+      if (e.shiftKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+         e.preventDefault();
+         if (currentIndex === -1) return;
+         const currentItem = items[currentIndex];
+
+         if (currentItem.type === 'tab' && currentItem.groupId) {
+             const group = groups.find(g => g.id === currentItem.groupId);
+             if (group) {
+                 const tabIndex = group.items.findIndex(t => t.id === currentItem.id);
+                 if (tabIndex !== -1) {
+                     const targetIndex = e.key === 'ArrowUp' ? tabIndex - 1 : tabIndex + 1;
+                     if (targetIndex >= 0 && targetIndex < group.items.length) {
+                         const newItems = [...group.items];
+                         const [movedTab] = newItems.splice(tabIndex, 1);
+                         newItems.splice(targetIndex, 0, movedTab);
+                         await updateGroupData(group.id, { items: newItems });
+                         // Ensure selection stays
+                         // document.getElementById(`item-${currentItem.id}`)?.scrollIntoView({ block: 'nearest' });
+                     }
+                 }
+             }
+         } else if (currentItem.type === 'group') {
+             const group = currentItem.data as Group;
+             const isPinned = group.pinned;
+             // Filter groups of same type
+             const relevantGroups = groups.filter(g => !!g.pinned === !!isPinned);
+             const groupIndex = relevantGroups.findIndex(g => g.id === currentItem.id);
+
+             if (groupIndex !== -1) {
+                 const targetIndex = e.key === 'ArrowUp' ? groupIndex - 1 : groupIndex + 1;
+
+                 // Check bounds within the filtered list
+                 if (targetIndex >= 0 && targetIndex < relevantGroups.length) {
+                     // We need to swap positions in the MAIN groups list
+                     // Find the neighbor in the main list
+                     const neighbor = relevantGroups[targetIndex];
+                     const mainIndexCurrent = groups.findIndex(g => g.id === group.id);
+                     const mainIndexNeighbor = groups.findIndex(g => g.id === neighbor.id);
+
+                     if (mainIndexCurrent !== -1 && mainIndexNeighbor !== -1) {
+                         const newGroups = [...groups];
+                         // Simple swap
+                         [newGroups[mainIndexCurrent], newGroups[mainIndexNeighbor]] = [newGroups[mainIndexNeighbor], newGroups[mainIndexCurrent]];
+                         await updateGroups(newGroups);
+                         document.getElementById(`item-${currentItem.id}`)?.scrollIntoView({ block: 'nearest' });
+                     }
+                 }
+             }
+         }
+         return;
+      }
+
+
+      switch (e.key) {
+        case 'ArrowDown': {
+          e.preventDefault();
+          const nextIndex = currentIndex + 1;
+          if (nextIndex < items.length) {
+            setSelectedId(items[nextIndex].id);
+            document.getElementById(`item-${items[nextIndex].id}`)?.scrollIntoView({ block: 'nearest' });
+          } else if (items.length > 0 && currentIndex === -1) {
+             // Select first if none selected
+             setSelectedId(items[0].id);
+          }
+          break;
+        }
+        case 'ArrowUp': {
+          e.preventDefault();
+          const prevIndex = currentIndex - 1;
+          if (prevIndex >= 0) {
+            setSelectedId(items[prevIndex].id);
+            document.getElementById(`item-${items[prevIndex].id}`)?.scrollIntoView({ block: 'nearest' });
+          }
+          break;
+        }
+        case 'ArrowRight': {
+          e.preventDefault();
+          if (currentIndex !== -1 && items[currentIndex].type === 'group') {
+            const group = items[currentIndex].data as Group;
+            if (group.collapsed) {
+               updateGroupData(group.id, { collapsed: false });
+            }
+          }
+          break;
+        }
+        case 'ArrowLeft': {
+           e.preventDefault();
+           if (currentIndex !== -1) {
+             const item = items[currentIndex];
+             if (item.type === 'group') {
+               const group = item.data as Group;
+               if (!group.collapsed) {
+                 updateGroupData(group.id, { collapsed: true });
+               }
+             } else if (item.type === 'tab' && item.groupId) {
+               // If tab is selected, pressing left selects its parent group
+                setSelectedId(item.groupId);
+                document.getElementById(`item-${item.groupId}`)?.scrollIntoView({ block: 'nearest' });
+             }
+           }
+           break;
+        }
+        case 'Enter': {
+          e.preventDefault();
+          if (currentIndex !== -1) {
+            const item = items[currentIndex];
+            if (item.type === 'group') {
+              restoreGroup(item.id);
+            } else if (item.type === 'tab' && item.groupId) {
+              restoreTab(item.groupId, item.id);
+            }
+          }
+          break;
+        }
+        case 'Backspace':
+        case 'Delete': {
+           e.preventDefault();
+           if (currentIndex !== -1) {
+             const item = items[currentIndex];
+             if (item.type === 'group') {
+                removeGroup(item.id);
+             } else if (item.type === 'tab' && item.groupId) {
+                removeTab(item.groupId, item.id);
+             }
+           }
+           break;
+        }
+        case 'p': {
+          e.preventDefault();
+          if (currentIndex !== -1 && items[currentIndex].type === 'group') {
+             const group = items[currentIndex].data as Group;
+             updateGroupData(group.id, { pinned: !group.pinned });
+          }
+          break;
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [getFlattenedItems, selectedId, groups, updateGroupData, restoreGroup, restoreTab, removeGroup, removeTab, updateGroups]);
+
   const dropAnimation: DropAnimation = {
       sideEffects: defaultDropAnimationSideEffects({
         styles: {
@@ -212,25 +423,11 @@ export function Dashboard() {
     <div className="min-h-screen bg-background text-foreground p-8">
       <header className="mb-8 flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Puuuush</h1>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Input
-                placeholder="Session Name..."
-                value={sessionInput}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSessionInput(e.target.value)}
-                className="w-64"
-            />
-            <Button onClick={handleSaveSession}>
-                <Save className="mr-2 h-4 w-4" />
-                Save Session
-            </Button>
-          </div>
-        </div>
       </header>
 
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
+        collisionDetection={pointerWithin}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
@@ -238,10 +435,10 @@ export function Dashboard() {
         <div className="space-y-8">
             {/* Pinned Section */}
             {pinnedGroups.length > 0 && (
-                <section>
+                <section className="max-w-3xl mx-auto w-full">
                     <h2 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wider">Pinned</h2>
-                    <SortableContext items={pinnedGroups.map(g => g.id)} strategy={rectSortingStrategy}>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <SortableContext items={pinnedGroups.map(g => g.id)} strategy={verticalListSortingStrategy}>
+                    <div className="flex flex-col gap-4">
                             {pinnedGroups.map(group => (
                                 <GroupCard
                                     key={group.id}
@@ -249,6 +446,13 @@ export function Dashboard() {
                                     onRemoveGroup={removeGroup}
                                     onRemoveTab={removeTab}
                                     onUpdateGroup={updateGroupData}
+                                    onRestore={restoreGroup}
+                                    onRestoreTab={restoreTab}
+                                    autoFocusName={group.id === autoFocusGroupId}
+                                    isSelected={selectedId === group.id}
+                                    selectedTabId={selectedId}
+                                    isRenaming={renamingGroupId === group.id}
+                                    onRenameStop={() => setRenamingGroupId(null)}
                                 />
                             ))}
                         </div>
@@ -257,12 +461,12 @@ export function Dashboard() {
             )}
 
             {/* Main Grid */}
-             <section>
+             <section className="max-w-3xl mx-auto w-full">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Collections</h2>
                 </div>
-                 <SortableContext items={unpinnedGroups.map(g => g.id)} strategy={rectSortingStrategy}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                 <SortableContext items={unpinnedGroups.map(g => g.id)} strategy={verticalListSortingStrategy}>
+                    <div className="flex flex-col gap-4">
                          {unpinnedGroups.map(group => (
                             <GroupCard
                                 key={group.id}
@@ -270,6 +474,13 @@ export function Dashboard() {
                                 onRemoveGroup={removeGroup}
                                 onRemoveTab={removeTab}
                                 onUpdateGroup={updateGroupData}
+                                onRestore={restoreGroup}
+                                onRestoreTab={restoreTab}
+                                autoFocusName={group.id === autoFocusGroupId}
+                                isSelected={selectedId === group.id}
+                                selectedTabId={selectedId}
+                                isRenaming={renamingGroupId === group.id}
+                                onRenameStop={() => setRenamingGroupId(null)}
                             />
                         ))}
                     </div>
@@ -281,17 +492,22 @@ export function Dashboard() {
             <DragOverlay dropAnimation={dropAnimation}>
                 {activeItem && activeId ? (
                    'items' in activeItem ? (
-                       <div className="w-[300px]">
+                       <div className="w-full max-w-3xl">
                            <GroupCard
                                group={activeItem as Group}
                                onRemoveGroup={() => {}}
                                onRemoveTab={() => {}}
                                onUpdateGroup={() => {}}
+                               onRestore={() => {}}
+                               onRestoreTab={() => {}}
+                               autoFocusName={false}
+                               isSelected={false}
+                               selectedTabId={null}
                             />
                        </div>
                    ) : (
                        <div className="w-[300px]">
-                        <TabCard tab={activeItem as TabItem} onRemove={() => {}} />
+                        <TabCard tab={activeItem as TabItem} onRemove={() => {}} onRestore={() => {}} />
                        </div>
                    )
                 ) : null}
