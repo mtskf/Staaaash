@@ -24,6 +24,7 @@ import { storage } from '@/lib/storage';
 import { GroupCard } from './GroupCard';
 import { TabCard } from './TabCard';
 import { createPortal } from 'react-dom';
+import { Pin, FolderOpen } from 'lucide-react';
 
 export function Dashboard() {
   const [groups, setGroups] = useState<Group[]>([]);
@@ -563,7 +564,7 @@ export function Dashboard() {
             {/* Pinned Section */}
             {pinnedGroups.length > 0 && (
                 <section className="max-w-3xl mx-auto w-full">
-                    <h2 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wider">Pinned</h2>
+                    <h2 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wider flex items-center gap-2"><Pin className="h-4 w-4" />Pinned</h2>
                     <SortableContext
               items={groups.filter(g => g.pinned).map(g => g.id)}
               strategy={isShiftPressed ? undefined : verticalListSortingStrategy}
@@ -594,7 +595,7 @@ export function Dashboard() {
             {/* Main Grid */}
              <section className="max-w-3xl mx-auto w-full">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Collections</h2>
+                    <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2"><FolderOpen className="h-4 w-4" />Collections</h2>
                 </div>
                  <SortableContext items={unpinnedGroups.map(g => g.id)} strategy={isShiftPressed ? undefined : verticalListSortingStrategy}>
                     <div className="flex flex-col gap-4">
