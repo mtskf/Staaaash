@@ -34,7 +34,10 @@ export const TabCard = forwardRef<HTMLDivElement, TabCardProps & React.HTMLAttri
             )}
             <span className="truncate text-sm font-medium">{tab.title}</span>
           </div>
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className={cn(
+            "flex items-center gap-1 transition-opacity",
+            isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          )}>
             <Button
               variant="ghost"
               size="icon"
