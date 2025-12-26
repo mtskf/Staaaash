@@ -132,7 +132,14 @@ export function GroupCard({
                   value={newTitle}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewTitle(e.target.value)}
                   onBlur={handleTitleSubmit}
-                  onKeyDown={(e: React.KeyboardEvent) => e.key === 'Enter' && handleTitleSubmit()}
+                  onKeyDown={(e: React.KeyboardEvent) => {
+                    if (e.key === 'Enter') handleTitleSubmit();
+                    if (e.key === 'Escape') {
+                      setNewTitle(group.title); // Revert to original
+                      setIsEditing(false);
+                      onRenameStop?.();
+                    }
+                  }}
                   className="h-7 w-full"
                 />
               ) : (
