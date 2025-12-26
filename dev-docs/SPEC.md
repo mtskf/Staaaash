@@ -29,6 +29,19 @@ A modern, minimalist tab manager extension for Chrome (Staaaash) that helps user
 - **Context Menu**: Right-click extension icon to "Open Collections" without archiving.
 - **Dark Mode**: Default dark theme.
 - **Drag and Drop**: Intuitive drag-and-drop for tabs and groups.
+- **Tooltips**: Action buttons show tooltips with names and keyboard shortcuts on hover.
+
+### 5. Keyboard Shortcuts
+| Shortcut | Action |
+|----------|--------|
+| `⌘` `/` | Archive all tabs (global) |
+| `↵` | Rename selected group |
+| `⌘` `↵` | Restore selected item |
+| `⌫` | Delete selected item |
+| `P` | Pin/Unpin group |
+| `Esc` | Cancel editing |
+| `↑` `↓` | Navigate items |
+| `←` `→` | Collapse / Expand group |
 
 ## Non-Functional Requirements
 - **Performance**: Instant load on new tab.

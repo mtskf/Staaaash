@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.4.0] - 2025-12-26
+### Added
+- **Tooltips with Shortcuts**: Hover over action buttons to see button names and keyboard shortcuts (using `<kbd>` styling).
+- **Archive Keyboard Shortcut**: `⌘+/` (Mac) / `Ctrl+/` (Windows) to archive all tabs in current window.
+- **Extension Icon**: Custom minimalist icon for the extension.
+- **MIT License**: Added LICENSE file.
+
+### Changed
+- **Renamed Extension**: Puuuush → **Staaaash**
+- **README**: Reformatted with centered header, tables, and `<kbd>` styled shortcuts.
+- **Code Cleanup**: Removed unused files (`App.css`, `useTabs.ts`, `react.svg`).
+
 ## [0.3.0] - 2025-12-26
 ### Added
 - **Group Merging**: Shift+Drag a group onto another to merge them (tabs combined, duplicates removed).

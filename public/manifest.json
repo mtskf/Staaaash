@@ -21,8 +21,8 @@
   "commands": {
     "archive-tabs": {
       "suggested_key": {
-        "default": "Ctrl+Slash",
-        "mac": "Command+Slash"
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
       },
       "description": "Archive all tabs in current window"
     }
