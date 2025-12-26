@@ -9,10 +9,12 @@ Puuuush replaces your New Tab page with a clean, organized dashboard. Save your 
 - 🗂 **Group Tabs**: Save all tabs in your window to a named group.
 - 📌 **Pin Groups**: Pin important groups to the top for easy access.
 - ✏️ **Edit & Organize**: Rename groups (with auto-focus), collapse them, and drag-and-drop to reorder.
+- 🔀 **Merge Groups**: Shift+Drag one group onto another to combine them (duplicates auto-removed).
 - 🔙 **Restore**: Open all tabs in a group with one click, or restore individual tabs.
 - 🔄 **Sync**: Groups are synced across all your Chrome instances via Chrome Storage Sync.
 - 🎨 **Modern UI**: Clean, Dark Mode design using shadcn/ui and Tailwind CSS.
 - 🤏 **Drag & Drop**: Reorder groups and tabs with intuitive drag-and-drop.
+- ⌨️ **Keyboard Shortcuts**: Navigate with arrow keys, Enter to rename, Cmd/Ctrl+Enter to restore.
 - ⚡️ **Lightweight**: Built with Vite and React for instant load times.
 
 ## Tech Stack

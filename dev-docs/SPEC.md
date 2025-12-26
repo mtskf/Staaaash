@@ -14,12 +14,12 @@ A modern, minimalist tab manager extension for Chrome that helps users declutter
 
 ### 2. Group Management
 - **Grouping**: Organize tabs into named collections.
-- **Renaming**: Edit group titles (Auto-focus on creation).
+- **Renaming**: Edit group titles (Auto-focus on creation, Enter key to edit, Escape to cancel).
 - **Reordering**: Drag and drop groups to change their order.
 - **Sorting**: New groups are automatically added to the top of the list.
 - **Collapsing**: Collapse/Expand groups to save space.
 - **Pinning**: Pin important groups to the separate "Pinned" section at the top.
-- **Merging**: Merge two groups into one (Planned).
+- **Merging**: Shift+Drag a group onto another to merge them (duplicates auto-removed).
 
 ### 3. Sync
 - **Cross-Device**: Sync groups and tabs across devices using `chrome.storage.sync`.

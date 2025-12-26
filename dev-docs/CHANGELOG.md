@@ -3,12 +3,27 @@
 All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
+
+## [0.3.0] - 2025-12-26
 ### Added
-- Initial project setup with Vite, React, TypeScript.
-- Core dashboard UI with Drag & Drop.
-- Chrome Storage Sync integration.
-- Group and Tab management components.
-- Documentation structure (`dev-docs`).
+- **Group Merging**: Shift+Drag a group onto another to merge them (tabs combined, duplicates removed).
+- **Duplicate Tab Removal**: Tabs with the same URL are automatically deduplicated when archiving or merging.
+- **Keyboard Shortcuts**:
+    - `Enter`: Rename selected group.
+    - `Cmd/Ctrl + Enter`: Restore selected item.
+    - `Escape`: Cancel group name editing.
+    - Arrow keys for navigation.
+- **Edit Icon**: Pencil icon next to group title for easier rename access.
+- **Tab Action Buttons**: Restore/Delete buttons visible when tab is selected via keyboard.
+
+### Changed
+- **Group Title Font**: Set to `0.875rem` (`text-sm`) for consistency.
+- **Title Input Width**: Expanded to fill available space.
+- **Button Colors**:
+    - Delete button: Brighter red (`text-red-500`).
+    - Pin icon: Yellow when active (`text-yellow-500`).
+- **Drag Cursor**: Shows `copy` cursor during merge mode, `grabbing` during normal drag.
+- **Tab Focus**: Disabled Tab key focus on drag handles.
 
 ## [0.2.0] - 2025-12-26
 ### Added
