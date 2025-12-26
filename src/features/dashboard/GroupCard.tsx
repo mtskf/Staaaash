@@ -141,7 +141,7 @@ export function GroupCard({
                 />
               ) : (
                 <h3
-                  className="font-semibold truncate cursor-text hover:underline"
+                  className="text-sm font-medium truncate cursor-text hover:underline"
                   onClick={() => setIsEditing(true)}
                   title="Click to rename"
                 >
