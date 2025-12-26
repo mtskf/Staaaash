@@ -10,7 +10,7 @@ const mockStorage: StorageSchema = {
 export const storage = {
   get: async (): Promise<StorageSchema> => {
     if (IS_DEV && !chrome.storage) {
-      const local = localStorage.getItem("puuuush-storage");
+      const local = localStorage.getItem("staaaash-storage");
       return local ? JSON.parse(local) : mockStorage;
     }
 
@@ -23,10 +23,10 @@ export const storage = {
 
   set: async (data: Partial<StorageSchema>): Promise<void> => {
     if (IS_DEV && !chrome.storage) {
-      const current = localStorage.getItem("puuuush-storage");
+      const current = localStorage.getItem("staaaash-storage");
       const parsed = current ? JSON.parse(current) : mockStorage;
       const newData = { ...parsed, ...data };
-      localStorage.setItem("puuuush-storage", JSON.stringify(newData));
+      localStorage.setItem("staaaash-storage", JSON.stringify(newData));
       return;
     }
 

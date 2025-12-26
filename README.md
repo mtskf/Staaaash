@@ -1,8 +1,8 @@
-# Puuuush
+# Staaaash
 
 > A modern, minimalist tab manager for Chrome to organize your browser life.
 
-Puuuush replaces your New Tab page with a clean, organized dashboard. Save your open tabs into groups, organize them by project or context, and restore them when you're ready to work. Similar to Toby, but open source and built with a modern stack.
+Staaaash replaces your New Tab page with a clean, organized dashboard. Save your open tabs into groups, organize them by project or context, and restore them when you're ready to work. Similar to Toby, but open source and built with a modern stack.
 
 ## Features
 
@@ -28,8 +28,8 @@ Puuuush replaces your New Tab page with a clean, organized dashboard. Save your 
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/mtskf/Puuuush.git
-   cd Puuuush
+   git clone https://github.com/mtskf/Staaaash.git
+   cd Staaaash
    ```
 
 2. **Install Dependencies**

@@ -1,7 +1,7 @@
 # Architecture
 
 ## Overview
-Puuuush is a Chrome Extension designed to manage and organize browser tabs into groups, similar to Toby. It overrides the New Tab page to provide a dashboard where users can save, reorganize, and restore tabs.
+Staaaash is a Chrome Extension designed to manage and organize browser tabs into groups, similar to Toby. It overrides the New Tab page to provide a dashboard where users can save, reorganize, and restore tabs.
 
 ## Core Components
 ### 1. New Tab Dashboard (`src/features/dashboard`)

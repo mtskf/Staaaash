@@ -1,7 +1,7 @@
 # Specifications (SPEC)
 
 ## Product Vision
-A modern, minimalist tab manager extension for Chrome that helps users declutter their browser and save memory by organizing tabs into named groups.
+A modern, minimalist tab manager extension for Chrome (Staaaash) that helps users declutter their browser and save memory by organizing tabs into named groups.
 
 ## Core Features
 ### 1. Tab Management
