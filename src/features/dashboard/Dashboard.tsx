@@ -20,17 +20,33 @@ import {
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
 import type { Group, TabItem } from '@/types';
-import { storage } from '@/lib/storage';
+import { storage, StorageQuotaError } from '@/lib/storage';
 import { GroupCard } from './GroupCard';
 import { TabCard } from './TabCard';
 import { createPortal } from 'react-dom';
-import { Pin, FolderOpen } from 'lucide-react';
+import { Pin, FolderOpen, Search, Download, Upload } from 'lucide-react';
+import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export function Dashboard() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeItem, setActiveItem] = useState<Group | TabItem | null>(null);
   const [autoFocusGroupId, setAutoFocusGroupId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [groupToDelete, setGroupToDelete] = useState<Group | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -91,7 +107,7 @@ export function Dashboard() {
 
   // Helper to get flattened list of visible items for navigation
   const getFlattenedItems = useCallback(() => {
-    const items: Array<{ id: string, type: 'group' | 'tab', groupId?: string, data?: any }> = [];
+    const items: Array<{ id: string, type: 'group' | 'tab', groupId?: string, data?: Group | TabItem }> = [];
 
     const processGroup = (group: Group) => {
       items.push({ id: group.id, type: 'group', data: group });
@@ -110,11 +126,21 @@ export function Dashboard() {
     return items;
   }, [groups]);
 
-
-  const updateGroups = async (newGroups: Group[]) => {
+  const updateGroups = useCallback(async (newGroups: Group[]) => {
     setGroups(newGroups);
-    await storage.updateGroups(newGroups);
-  };
+    try {
+      await storage.updateGroups(newGroups);
+    } catch (error) {
+      if (error instanceof StorageQuotaError) {
+        toast.error("Storage quota exceeded. Try removing some groups.");
+      } else {
+        toast.error("Failed to save changes.");
+      }
+      // Reload to get actual state
+      const data = await storage.get();
+      setGroups(data.groups.sort((a, b) => a.order - b.order));
+    }
+  }, []);
 
 
 
@@ -270,12 +296,12 @@ export function Dashboard() {
     }
   };
 
-  const removeGroup = async (id: string) => {
+  const removeGroup = useCallback(async (id: string) => {
     const newGroups = groups.filter(g => g.id !== id);
     await updateGroups(newGroups);
-  };
+  }, [groups, updateGroups]);
 
-  const removeTab = async (groupId: string, tabId: string) => {
+  const removeTab = useCallback(async (groupId: string, tabId: string) => {
     const newGroups = groups.map(g => {
         if (g.id === groupId) {
             return {
@@ -286,33 +312,47 @@ export function Dashboard() {
         return g;
     });
     await updateGroups(newGroups);
-  };
+  }, [groups, updateGroups]);
 
-  const updateGroupData = async (id: string, data: Partial<Group>) => {
+  const updateGroupData = useCallback(async (id: string, data: Partial<Group>) => {
       const newGroups = groups.map(g => g.id === id ? { ...g, ...data } : g);
       setGroups(newGroups); // Optimistic update
-      await storage.updateGroups(newGroups);
-  };
+      try {
+        await storage.updateGroups(newGroups);
+      } catch {
+        toast.error("Failed to save changes.");
+      }
+  }, [groups]);
 
-  const restoreGroup = async (id: string) => {
+  const restoreGroup = useCallback(async (id: string) => {
     const group = groups.find(g => g.id === id);
     if (!group) return;
 
     for (const item of group.items) {
       await chrome.tabs.create({ url: item.url, active: false });
     }
-    await removeGroup(id);
-  };
+    const newGroups = groups.filter(g => g.id !== id);
+    await updateGroups(newGroups);
+  }, [groups, updateGroups]);
 
-  const restoreTab = async (groupId: string, tabId: string) => {
+  const restoreTab = useCallback(async (groupId: string, tabId: string) => {
     const group = groups.find(g => g.id === groupId);
     if (!group) return;
     const tab = group.items.find(t => t.id === tabId);
     if (!tab) return;
 
     await chrome.tabs.create({ url: tab.url, active: false });
-    await removeTab(groupId, tabId);
-  };
+    const newGroups = groups.map(g => {
+        if (g.id === groupId) {
+            return {
+                ...g,
+                items: g.items.filter((t: TabItem) => t.id !== tabId)
+            };
+        }
+        return g;
+    });
+    await updateGroups(newGroups);
+  }, [groups, updateGroups]);
 
   // Renaming state
   const [renamingGroupId, setRenamingGroupId] = useState<string | null>(null);
@@ -544,14 +584,111 @@ export function Dashboard() {
       }),
   };
 
-  const pinnedGroups = groups.filter(g => g.pinned);
-  const unpinnedGroups = groups.filter(g => !g.pinned);
+  // Filter groups based on search query
+  const filterGroups = useCallback((groupList: Group[]) => {
+    if (!searchQuery.trim()) return groupList;
+    const query = searchQuery.toLowerCase();
+    return groupList.filter(g =>
+      g.title.toLowerCase().includes(query) ||
+      g.items.some(tab => tab.title.toLowerCase().includes(query) || tab.url.toLowerCase().includes(query))
+    );
+  }, [searchQuery]);
+
+  const pinnedGroups = filterGroups(groups.filter(g => g.pinned));
+  const unpinnedGroups = filterGroups(groups.filter(g => !g.pinned));
+
+  // Export handler
+  const handleExport = async () => {
+    try {
+      const json = await storage.exportData();
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `staaaash-backup-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Backup exported successfully!');
+    } catch {
+      toast.error('Failed to export data.');
+    }
+  };
+
+  // Import handler
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const importedGroups = await storage.importData(text);
+      setGroups(importedGroups.sort((a, b) => a.order - b.order));
+      toast.success(`Imported ${importedGroups.length} groups successfully!`);
+    } catch {
+      toast.error('Failed to import data. Invalid file format.');
+    }
+    // Reset file input
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  // Confirm delete handler
+  const handleConfirmDelete = async () => {
+    if (!groupToDelete) return;
+    await removeGroup(groupToDelete.id);
+    setGroupToDelete(null);
+    toast.success('Group deleted.');
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground p-8">
-      <header className="mb-8 flex items-center justify-between">
-        <h1 className="text-3xl font-bold tracking-tight">Staaaash</h1>
+      <header className="mb-8 max-w-3xl mx-auto w-full">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-3xl font-bold tracking-tight">Staaaash</h1>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={handleExport} title="Export backup">
+              <Download className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} title="Import backup">
+              <Upload className="h-4 w-4" />
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              className="hidden"
+            />
+          </div>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search groups and tabs..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
       </header>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!groupToDelete} onOpenChange={(open) => !open && setGroupToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete group?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete "{groupToDelete?.title}" and its {groupToDelete?.items.length} tab(s).
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <DndContext
         sensors={sensors}
@@ -619,6 +756,19 @@ export function Dashboard() {
                     </div>
                 </SortableContext>
             </section>
+
+            {/* Empty State */}
+            {groups.length === 0 && (
+              <section className="max-w-3xl mx-auto w-full">
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <FolderOpen className="h-16 w-16 text-muted-foreground/50 mb-4" />
+                  <h2 className="text-xl font-semibold mb-2">No saved tabs yet</h2>
+                  <p className="text-muted-foreground mb-4 max-w-md">
+                    Press <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono">⌘</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono">⇧</kbd> + <kbd className="px-2 py-1 bg-muted rounded text-xs font-mono">S</kbd> to archive all tabs in your current window, or click the Staaaash icon in the toolbar.
+                  </p>
+                </div>
+              </section>
+            )}
         </div>
 
         {createPortal(
