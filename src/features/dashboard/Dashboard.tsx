@@ -165,10 +165,17 @@ export function Dashboard() {
                 const targetGroup = groups.find(g => g.id === targetGroupId);
 
                 if (sourceGroup && targetGroup) {
-                    const newItems = [...targetGroup.items, ...sourceGroup.items];
+                    // Merge and deduplicate by URL
+                    const seenUrls = new Set<string>();
+                    const mergedItems = [...targetGroup.items, ...sourceGroup.items].filter(tab => {
+                        if (seenUrls.has(tab.url)) return false;
+                        seenUrls.add(tab.url);
+                        return true;
+                    });
+
                     const newGroups = groups
                         .filter(g => g.id !== sourceGroup.id)
-                        .map(g => g.id === targetGroup.id ? { ...g, items: newItems } : g);
+                        .map(g => g.id === targetGroup.id ? { ...g, items: mergedItems } : g);
 
                     await updateGroups(newGroups);
                 }
