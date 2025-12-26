@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="public/icon128.png" width="80" alt="Staaaash Icon" />
+  <img src="public/logo.png" width="300" alt="Staaaash" />
 </p>
-
-<h1 align="center">Staaaash</h1>
 
 <p align="center">
   <strong>The modern, minimalist tab manager for Chrome.</strong><br/>
