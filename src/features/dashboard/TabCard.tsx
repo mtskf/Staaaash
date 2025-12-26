@@ -54,7 +54,7 @@ export const TabCard = forwardRef<HTMLDivElement, TabCardProps & React.HTMLAttri
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6 text-destructive hover:text-destructive"
+              className="h-6 w-6 text-red-500 hover:text-red-600"
               onClick={(e: React.MouseEvent) => {
                 e.stopPropagation(); // Prevent drag start
                 onRemove(tab.id);

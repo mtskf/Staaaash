@@ -178,7 +178,7 @@ export function GroupCard({
              <Button
                 variant="ghost"
                 size="icon"
-                className={cn("h-7 w-7", group.pinned ? "text-primary" : "text-muted-foreground")}
+                className={cn("h-7 w-7", group.pinned ? "text-yellow-500" : "text-muted-foreground")}
                 onClick={() => onUpdateGroup(group.id, { pinned: !group.pinned })}
                 title={group.pinned ? "Unpin group" : "Pin group"}
              >
@@ -187,7 +187,7 @@ export function GroupCard({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-destructive/70 hover:text-destructive"
+              className="h-7 w-7 text-red-500 hover:text-red-600"
               onClick={() => onRemoveGroup(group.id)}
             >
               <Trash2 className="h-3.5 w-3.5" />
