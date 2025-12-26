@@ -1,0 +1,37 @@
+# Architecture
+
+## Overview
+Puuuush is a Chrome Extension designed to manage and organize browser tabs into groups, similar to Toby. It overrides the New Tab page to provide a dashboard where users can save, reorganize, and restore tabs.
+
+## Core Components
+### 1. New Tab Dashboard (`src/features/dashboard`)
+- **Framework**: React + Vite
+- **Styling**: Tailwind CSS + shadcn/ui (Radix UI)
+- **State Management**: React `useState` / `useEffect` + Local Component State
+- **Drag & Drop**: `@dnd-kit` for complex drag-and-drop interactions (Groups and Tabs within groups).
+
+### 2. Data Persistence (`src/lib/storage.ts`)
+- **Storage**: `chrome.storage.sync`
+- **Schema**:
+  - `groups`: Array of `Group` objects.
+  - `Group`: Contains `id`, `title`, `items` (tabs), `pinned`, `collapsed`.
+  - `TabItem`: Contains `id`, `url`, `title`, `favIconUrl`.
+
+### 3. Background Scripts (`src/background` - *Planned/Minimal*)
+- Currently minimal usage.
+- Future: Context menus, commands handling.
+
+## Directory Structure
+```
+src/
+├── components/ui/   # Generic UI components (shadcn/ui)
+├── features/        # Feature-specific logic (Dashboard, etc.)
+├── hooks/           # Custom React hooks (useTabs)
+├── lib/             # Utilities (storage, utils)
+├── types/           # TypeScript definitions
+└── ...
+```
+
+## Build System
+- **Vite**: Handles HMR during dev and bundling for production.
+- **Manifest V3**: Compliant with latest Chrome Extension standards.
