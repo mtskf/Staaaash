@@ -177,7 +177,21 @@ export function Dashboard() {
 
              const targetItems = [...targetGroup.items];
              if (overType === 'Group') {
-                 targetItems.push(tabToMove);
+                 // Check visual order to decide insertion point
+                 const pinnedGroups = groups.filter(g => g.pinned).sort((a, b) => a.order - b.order);
+                 const unpinnedGroups = groups.filter(g => !g.pinned).sort((a, b) => a.order - b.order);
+                 const visualGroups = [...pinnedGroups, ...unpinnedGroups];
+
+                 const sourceIndex = visualGroups.findIndex(g => g.id === sourceGroup.id);
+                 const targetIndex = visualGroups.findIndex(g => g.id === targetGroup.id);
+
+                 if (targetIndex > sourceIndex) {
+                     // Moving DOWN to a group -> Insert at TOP
+                     targetItems.unshift(tabToMove);
+                 } else {
+                     // Moving UP to a group -> Insert at BOTTOM (default)
+                     targetItems.push(tabToMove);
+                 }
              } else {
                  const insertIndex = targetItems.findIndex(t => t.id === over.id);
                  if (insertIndex !== -1) {
@@ -274,14 +288,61 @@ export function Dashboard() {
              if (group) {
                  const tabIndex = group.items.findIndex(t => t.id === currentItem.id);
                  if (tabIndex !== -1) {
-                     const targetIndex = e.key === 'ArrowUp' ? tabIndex - 1 : tabIndex + 1;
-                     if (targetIndex >= 0 && targetIndex < group.items.length) {
-                         const newItems = [...group.items];
-                         const [movedTab] = newItems.splice(tabIndex, 1);
-                         newItems.splice(targetIndex, 0, movedTab);
-                         await updateGroupData(group.id, { items: newItems });
-                         // Ensure selection stays
-                         // document.getElementById(`item-${currentItem.id}`)?.scrollIntoView({ block: 'nearest' });
+                     // Check for cross-group move
+                     const isFirstItem = tabIndex === 0;
+                     const isLastItem = tabIndex === group.items.length - 1;
+
+                     if (e.key === 'ArrowUp' && isFirstItem) {
+                         // Move to previous group's bottom
+                         const pinnedGroups = groups.filter(g => g.pinned).sort((a, b) => a.order - b.order);
+                         const unpinnedGroups = groups.filter(g => !g.pinned).sort((a, b) => a.order - b.order);
+                         const visualGroups = [...pinnedGroups, ...unpinnedGroups];
+
+                         const groupIndex = visualGroups.findIndex(g => g.id === group.id);
+                         if (groupIndex > 0) {
+                             const prevGroup = visualGroups[groupIndex - 1];
+                             const newGroups = groups.map(g => {
+                                 if (g.id === group.id) {
+                                     return { ...g, items: g.items.filter(t => t.id !== currentItem.id) };
+                                 }
+                                 if (g.id === prevGroup.id) {
+                                     return { ...g, items: [...g.items, currentItem.data as TabItem], collapsed: false };
+                                 }
+                                 return g;
+                             });
+                             await updateGroups(newGroups);
+                             document.getElementById(`item-${currentItem.id}`)?.scrollIntoView({ block: 'nearest' });
+                         }
+                     } else if (e.key === 'ArrowDown' && isLastItem) {
+                         // Move to next group's bottom
+                         const pinnedGroups = groups.filter(g => g.pinned).sort((a, b) => a.order - b.order);
+                         const unpinnedGroups = groups.filter(g => !g.pinned).sort((a, b) => a.order - b.order);
+                         const visualGroups = [...pinnedGroups, ...unpinnedGroups];
+
+                         const groupIndex = visualGroups.findIndex(g => g.id === group.id);
+                         if (groupIndex !== -1 && groupIndex < visualGroups.length - 1) {
+                             const nextGroup = visualGroups[groupIndex + 1];
+                              const newGroups = groups.map(g => {
+                                 if (g.id === group.id) {
+                                     return { ...g, items: g.items.filter(t => t.id !== currentItem.id) };
+                                 }
+                                 if (g.id === nextGroup.id) {
+                                     return { ...g, items: [...g.items, currentItem.data as TabItem], collapsed: false };
+                                 }
+                                 return g;
+                             });
+                             await updateGroups(newGroups);
+                             document.getElementById(`item-${currentItem.id}`)?.scrollIntoView({ block: 'nearest' });
+                         }
+                     } else {
+                         // Intra-group move
+                         const targetIndex = e.key === 'ArrowUp' ? tabIndex - 1 : tabIndex + 1;
+                         if (targetIndex >= 0 && targetIndex < group.items.length) {
+                             const newItems = [...group.items];
+                             const [movedTab] = newItems.splice(tabIndex, 1);
+                             newItems.splice(targetIndex, 0, movedTab);
+                             await updateGroupData(group.id, { items: newItems });
+                         }
                      }
                  }
              }
@@ -367,13 +428,15 @@ export function Dashboard() {
            break;
         }
         case 'Enter': {
-          e.preventDefault();
-          if (currentIndex !== -1) {
-            const item = items[currentIndex];
-            if (item.type === 'group') {
-              restoreGroup(item.id);
-            } else if (item.type === 'tab' && item.groupId) {
-              restoreTab(item.groupId, item.id);
+          if (e.metaKey || e.ctrlKey) {
+            e.preventDefault();
+            if (currentIndex !== -1) {
+              const item = items[currentIndex];
+              if (item.type === 'group') {
+                restoreGroup(item.id);
+              } else if (item.type === 'tab' && item.groupId) {
+                restoreTab(item.groupId, item.id);
+              }
             }
           }
           break;
