@@ -66,7 +66,8 @@ export function Dashboard() {
       removeTab,
       setRenamingGroupId,
       searchInputRef,
-      getFlattenedItems
+      getFlattenedItems,
+      onRequestDeleteGroup: (group) => setGroupToDelete(group)
   });
 
   const {
