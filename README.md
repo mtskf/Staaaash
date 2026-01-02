@@ -25,9 +25,11 @@ Declutter your browser and your mind. Staaaash helps you organize tabs into name
 | 🗂 **Smart Grouping** | Save all tabs in your window to a named collection with one click |
 | 🔀 **Merge Groups** | Shift+Drag one group onto another to combine them |
 | 📌 **Pin & Organize** | Pin important groups to the top, collapse them, drag-and-drop to reorder |
-| 🔄 **Cloud Sync** | Sign in with Google to sync across all your devices |
-| 🔒 **Offline First** | Works offline, syncs when connected |
-| ⚡️ **Instant Load** | Built with Vite and React for blazing fast performance |
+| ⚡️ **Lightning Fast** | Instant load times and snappy interactions.
+| 🔄 **Cloud Sync** | Seamlessly sync your stash across all your devices using your Google account.
+| 🔒 **Secure & Private** | Data is stored locally and only synced to your private Firebase path upon login.
+| ⌨️ **Keyboard First** | Navigate, organize, and manage everything without touching your mouse.
+| 🌚 **Dark Mode** | Beautifully designed for any lighting condition.
 
 ---
 

@@ -3,13 +3,15 @@
 ## Core
 - **Language**: TypeScript
 - **Framework**: React 19
-- **Build Tool**: Vite
+
+### Backend / BaaS
+- **Firebase Realtime Database**: For cross-device data synchronization (REST API).
+- **Firebase Authentication**: Google OAuth 2.0 for user identity.
 
 ## Extension
 - **Platform**: Chrome Extension Manifest V3
 - **APIs**: `chrome.storage.local`, `chrome.tabs`, `chrome.identity`
 
-## Backend
 - **Database**: Firebase Realtime Database
 - **Auth**: Firebase Auth + Google OAuth via `launchWebAuthFlow`
 

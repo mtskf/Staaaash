@@ -14,9 +14,11 @@ Staaaash is a Chrome Extension designed to manage and organize browser tabs into
     - `Dashboard`: Orchestrates the main DndContext and state updates.
 
 ### 2. Data Persistence (`src/lib/storage.ts`, `src/lib/firebase.ts`)
-- **Local Storage**: `chrome.storage.local` (offline-first cache)
-- **Cloud Storage**: Firebase Realtime Database (cross-device sync)
-- **Auth**: Google OAuth via `chrome.identity.launchWebAuthFlow`
+- **Storage**:
+    - **Offline-First**: `chrome.storage.local` is the single source of truth for the UI.
+    - **Cloud Sync**: Google Firebase Realtime Database (via REST API).
+    - **Sync Strategy**: 3-Way Merge (Local, Remote, Base) to handle offline changes and deletions without conflict.
+- **Authentication**: `chrome.identity.launchWebAuthFlow` with Google OAuth 2.0 (Web Application Client).
 - **Schema**:
   - `groups`: Array of `Group` objects.
   - `Group`: Contains `id`, `title`, `items` (tabs), `pinned`, `collapsed`, `order`, `createdAt`.

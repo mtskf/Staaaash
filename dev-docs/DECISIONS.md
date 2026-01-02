@@ -1,5 +1,22 @@
 # Decisions Log
 
+## 2026-01-02: Firebase REST API for Sync
+- **Context**: Firebase JS SDK uses `eval` or similar mechanisms that violate Manifest V3 Content Security Policy (CSP).
+- **Decision**: Use Firebase Realtime Database **REST API** instead of the SDK.
+- **Consequences**:
+    - No real-time WebSocket listeners; must use polling (implemented with `setTimeout`).
+    - Authentication requires manual token management (handled via `chrome.identity`).
+    - Compliant with Manifest V3.
+
+## 2026-01-02: 3-Way Merge for Sync
+- **Context**: Naive sync ("Remote missing = New Local item") caused deleted groups to resurrect on other devices.
+- **Decision**: Implement **3-Way Merge** by storing a snapshot of `Last Synced State` (Base).
+- **Logic**:
+    - If `Local` has item, `Remote` does not:
+        - If `Base` had it -> It was deleted remotely. **Action**: Delete Locally.
+        - If `Base` did not have it -> It is new locally. **Action**: Push to Remote.
+- **Consequences**: reliable deletion handling without complex tombstones. Cards and Buttons.
+
 ## 2024-12-25: UI Library Choice
 - **Decision**: Use shadcn/ui + Tailwind CSS.
 - **Rationale**: Provides high-quality, accessible components with full control over styles via Tailwind. Reduces time spent building common UI elements like Cards and Buttons.
