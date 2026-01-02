@@ -25,8 +25,8 @@ Declutter your browser and your mind. Staaaash helps you organize tabs into name
 | 🗂 **Smart Grouping** | Save all tabs in your window to a named collection with one click |
 | 🔀 **Merge Groups** | Shift+Drag one group onto another to combine them |
 | 📌 **Pin & Organize** | Pin important groups to the top, collapse them, drag-and-drop to reorder |
-| 🔄 **Sync Across Devices** | All data synced via Chrome Storage Sync |
-| 🔒 **Privacy First** | No external servers. Your data stays in Chrome |
+| 🔄 **Cloud Sync** | Sign in with Google to sync across all your devices |
+| 🔒 **Offline First** | Works offline, syncs when connected |
 | ⚡️ **Instant Load** | Built with Vite and React for blazing fast performance |
 
 ---

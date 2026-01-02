@@ -13,11 +13,13 @@ Staaaash is a Chrome Extension designed to manage and organize browser tabs into
     - `TabCard` / `SortableTabCard`: Separated for correct DragOverlay behavior.
     - `Dashboard`: Orchestrates the main DndContext and state updates.
 
-### 2. Data Persistence (`src/lib/storage.ts`)
-- **Storage**: `chrome.storage.sync`
+### 2. Data Persistence (`src/lib/storage.ts`, `src/lib/firebase.ts`)
+- **Local Storage**: `chrome.storage.local` (offline-first cache)
+- **Cloud Storage**: Firebase Realtime Database (cross-device sync)
+- **Auth**: Google OAuth via `chrome.identity.launchWebAuthFlow`
 - **Schema**:
   - `groups`: Array of `Group` objects.
-  - `Group`: Contains `id`, `title`, `items` (tabs), `pinned` (boolean), `collapsed` (boolean), `order` (number), `createdAt` (timestamp).
+  - `Group`: Contains `id`, `title`, `items` (tabs), `pinned`, `collapsed`, `order`, `createdAt`.
   - `TabItem`: Contains `id`, `url`, `title`, `favIconUrl`.
 
 ### 3. Background Scripts (`src/background`)

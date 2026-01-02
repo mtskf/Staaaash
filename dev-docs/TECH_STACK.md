@@ -7,7 +7,11 @@
 
 ## Extension
 - **Platform**: Chrome Extension Manifest V3
-- **APIs**: `chrome.storage.sync`, `chrome.tabs`, `chrome.topSites` (planned)
+- **APIs**: `chrome.storage.local`, `chrome.tabs`, `chrome.identity`
+
+## Backend
+- **Database**: Firebase Realtime Database
+- **Auth**: Firebase Auth + Google OAuth via `launchWebAuthFlow`
 
 ## UI/UX
 - **Styling**: Tailwind CSS v3

@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-01-02
+### Added
+- **Cloud Sync**: Sign in with Google to sync data across all devices via Firebase Realtime Database.
+- **Offline First**: Works without internet, syncs when connected.
+- **Auth Button**: Sign in/out button in the header.
+
+### Changed
+- **Storage**: Migrated from `chrome.storage.sync` to `chrome.storage.local` + Firebase for unlimited storage.
+- **OAuth**: Uses `launchWebAuthFlow` for authentication (works with any extension ID).
+
 ## [0.5.0] - 2025-12-26
 ### Added
 - **Search**: Filter groups and tabs by title or URL.
