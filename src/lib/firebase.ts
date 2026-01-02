@@ -7,7 +7,6 @@ import {
   onAuthStateChanged as firebaseOnAuthStateChanged,
 } from 'firebase/auth';
 import type { User } from 'firebase/auth';
-import { getDatabase, ref, set, get, onValue, type Unsubscribe } from 'firebase/database';
 import type { Group } from '@/types';
 
 // Firebase configuration
@@ -21,17 +20,16 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID || ''
 };
 
-// Google OAuth Client ID for Web application (not Chrome extension)
+// Google OAuth Client ID for Web application
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+const DATABASE_URL = import.meta.env.VITE_FIREBASE_DATABASE_URL || '';
 
-// Initialize Firebase
+// Initialize Firebase (Auth only, no Realtime DB SDK)
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const database = getDatabase(app);
 
 /**
  * Sign in with Google using launchWebAuthFlow
- * This opens a browser popup for OAuth and works on any machine
  */
 export async function signInWithGoogle(): Promise<User> {
   const redirectUri = chrome.identity.getRedirectURL();
@@ -52,7 +50,6 @@ export async function signInWithGoogle(): Promise<User> {
         }
 
         try {
-          // Extract access token from response URL
           const url = new URL(responseUrl);
           const hashParams = new URLSearchParams(url.hash.substring(1));
           const accessToken = hashParams.get('access_token');
@@ -62,7 +59,6 @@ export async function signInWithGoogle(): Promise<User> {
             return;
           }
 
-          // Sign in to Firebase with the access token
           const credential = GoogleAuthProvider.credential(null, accessToken);
           const result = await signInWithCredential(auth, credential);
           resolve(result.user);
@@ -91,61 +87,113 @@ export function getCurrentUser(): User | null {
 /**
  * Subscribe to auth state changes
  */
-export function onAuthStateChanged(callback: (user: User | null) => void): Unsubscribe {
+export function onAuthStateChanged(callback: (user: User | null) => void): () => void {
   return firebaseOnAuthStateChanged(auth, callback);
 }
 
 /**
- * Get user's groups from Firebase
+ * Get user's ID token for REST API calls
  */
-export async function getGroupsFromFirebase(userId: string): Promise<Group[]> {
-  const groupsRef = ref(database, `users/${userId}/groups`);
-  const snapshot = await get(groupsRef);
-
-  if (!snapshot.exists()) {
-    return [];
-  }
-
-  const data = snapshot.val();
-  // Convert object to array
-  return Object.values(data) as Group[];
+async function getIdToken(): Promise<string | null> {
+  const user = auth.currentUser;
+  if (!user) return null;
+  return user.getIdToken();
 }
 
 /**
- * Save groups to Firebase
+ * Get user's groups from Firebase using REST API
+ */
+export async function getGroupsFromFirebase(userId: string): Promise<Group[]> {
+  const token = await getIdToken();
+  if (!token) return [];
+
+  try {
+    const response = await fetch(
+      `${DATABASE_URL}/users/${userId}/groups.json?auth=${token}`
+    );
+
+    if (!response.ok) {
+      console.error('Failed to fetch groups:', response.status);
+      return [];
+    }
+
+    const data = await response.json();
+    if (!data) return [];
+
+    return Object.values(data) as Group[];
+  } catch (error) {
+    console.error('Error fetching groups:', error);
+    return [];
+  }
+}
+
+/**
+ * Save groups to Firebase using REST API
  */
 export async function saveGroupsToFirebase(userId: string, groups: Group[]): Promise<void> {
-  const groupsRef = ref(database, `users/${userId}/groups`);
+  const token = await getIdToken();
+  if (!token) return;
 
-  // Convert array to object with group IDs as keys for efficient updates
+  // Convert array to object with group IDs as keys
   const groupsObject: Record<string, Group> = {};
   groups.forEach(group => {
     groupsObject[group.id] = group;
   });
 
-  await set(groupsRef, groupsObject);
+  const response = await fetch(
+    `${DATABASE_URL}/users/${userId}/groups.json?auth=${token}`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(groupsObject)
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to save groups: ${response.status}`);
+  }
 }
 
 /**
- * Subscribe to real-time updates for user's groups
+ * Subscribe to groups changes using polling (REST API)
+ * Returns unsubscribe function
  */
 export function subscribeToGroups(
   userId: string,
-  callback: (groups: Group[]) => void
-): Unsubscribe {
-  const groupsRef = ref(database, `users/${userId}/groups`);
+  callback: (groups: Group[]) => void,
+  intervalMs: number = 5000
+): () => void {
+  let isActive = true;
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-  return onValue(groupsRef, (snapshot) => {
-    if (!snapshot.exists()) {
-      callback([]);
-      return;
+  const poll = async () => {
+    if (!isActive) return;
+
+    try {
+      const groups = await getGroupsFromFirebase(userId);
+      if (isActive) {
+        callback(groups);
+      }
+    } catch (error) {
+      console.error('Polling error:', error);
     }
 
-    const data = snapshot.val();
-    const groups = Object.values(data) as Group[];
-    callback(groups);
-  });
+    if (isActive) {
+      timeoutId = setTimeout(poll, intervalMs);
+    }
+  };
+
+  // Start polling
+  poll();
+
+  // Return unsubscribe function
+  return () => {
+    isActive = false;
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  };
 }
 
-export { auth, database };
+export { auth };
 export type { User };
