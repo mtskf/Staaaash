@@ -5,6 +5,7 @@ import {
   saveGroupsToFirebase,
   subscribeToGroups
 } from './firebase';
+import { mergeGroups } from './sync-utils';
 
 const IS_DEV = import.meta.env.DEV;
 
@@ -46,34 +47,9 @@ export function initFirebaseSync(onGroupsUpdated: (groups: Group[]) => void) {
 
         // 2. Get last synced groups (Base)
         const lastSyncedGroups = await getLastSynced();
-        const lastSyncedIds = new Set(lastSyncedGroups.map(g => g.id));
 
-        // 3. Determine Merged State
-        const firebaseIds = new Set(firebaseGroups.map(g => g.id));
-        const mergedGroups: Group[] = [];
-
-        // Add all Firebase groups (Remote wins for updates/existence)
-        mergedGroups.push(...firebaseGroups);
-
-        // Check local groups to see if any are NEW and should be preserved
-        const newLocalGroups: Group[] = [];
-        for (const localGroup of localGroups) {
-            // If it exists in Firebase, it's already added above (mapped by Remote data)
-            if (firebaseIds.has(localGroup.id)) continue;
-
-            // If it's NOT in Firebase:
-            // Check if it was present in the last sync (Base)
-            if (lastSyncedIds.has(localGroup.id)) {
-                // It was in Base but not in Remote -> It implies Remote Deletion.
-                // Action: Delete locally (do not add to mergedGroups)
-                console.log(`[Sync] Group separatedly deleted remotely: ${localGroup.id}`);
-            } else {
-                // It was NOT in Base and NOT in Remote -> It implies Local Creation.
-                // Action: Keep it and push to Remote later
-                mergedGroups.push(localGroup);
-                newLocalGroups.push(localGroup);
-            }
-        }
+        // 3. Perform 3-Way Merge
+        const { mergedGroups, newLocalGroups } = mergeGroups(localGroups, firebaseGroups, lastSyncedGroups);
 
         // 4. Save merged result to local
         await saveToLocal(mergedGroups);
