@@ -15,6 +15,8 @@ interface UseKeyboardNavProps {
   setRenamingGroupId: (id: string | null) => void;
   searchInputRef: React.RefObject<HTMLInputElement | null>;
   getFlattenedItems: () => FlattenedItem[];
+  onRequestDeleteGroup?: (group: Group) => void;
+  disabled?: boolean;
 }
 
 export function useKeyboardNav({
@@ -29,7 +31,9 @@ export function useKeyboardNav({
   removeTab,
   setRenamingGroupId,
   searchInputRef,
-  getFlattenedItems
+  getFlattenedItems,
+  onRequestDeleteGroup,
+  disabled = false
 }: UseKeyboardNavProps) {
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const shiftPressedRef = useRef(false);
@@ -37,12 +41,14 @@ export function useKeyboardNav({
   // Track Shift key state
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+        if (disabled) return;
         if (e.key === 'Shift') {
             setIsShiftPressed(true);
             shiftPressedRef.current = true;
         }
     };
     const handleKeyUp = (e: KeyboardEvent) => {
+        if (disabled) return;
         if (e.key === 'Shift') {
              setIsShiftPressed(false);
              shiftPressedRef.current = false;
@@ -56,11 +62,13 @@ export function useKeyboardNav({
         window.removeEventListener('keydown', handleKeyDown);
         window.removeEventListener('keyup', handleKeyUp);
     };
-  }, []);
+  }, [disabled]);
 
   // Main Keyboard Navigation Logic
   useEffect(() => {
     const handleKeyDown = async (e: KeyboardEvent) => {
+      if (disabled) return;
+
       // ⌘+F to focus search (allow even in inputs)
       if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
         e.preventDefault();
@@ -124,7 +132,7 @@ export function useKeyboardNav({
                          const groupIndex = visualGroups.findIndex(g => g.id === group.id);
                          if (groupIndex !== -1 && groupIndex < visualGroups.length - 1) {
                              const nextGroup = visualGroups[groupIndex + 1];
-                              const newGroups = groups.map(g => {
+                               const newGroups = groups.map(g => {
                                  if (g.id === group.id) {
                                      return { ...g, items: g.items.filter(t => t.id !== currentItem.id) };
                                  }
@@ -262,7 +270,11 @@ export function useKeyboardNav({
            if (currentIndex !== -1) {
              const item = items[currentIndex];
              if (item.type === 'group') {
-                removeGroup(item.id);
+                if (onRequestDeleteGroup) {
+                    onRequestDeleteGroup(item.data as Group);
+                } else {
+                    removeGroup(item.id);
+                }
              } else if (item.type === 'tab' && item.groupId) {
                 removeTab(item.groupId, item.id);
              }
@@ -282,7 +294,7 @@ export function useKeyboardNav({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [getFlattenedItems, selectedId, groups, updateGroupData, restoreGroup, restoreTab, removeGroup, removeTab, updateGroups, setRenamingGroupId, searchInputRef, setSelectedId]);
+  }, [getFlattenedItems, selectedId, groups, updateGroupData, restoreGroup, restoreTab, removeGroup, removeTab, updateGroups, setRenamingGroupId, searchInputRef, setSelectedId, onRequestDeleteGroup, disabled]);
 
   return { isShiftPressed, shiftPressedRef };
 }

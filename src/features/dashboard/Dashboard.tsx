@@ -128,9 +128,13 @@ export function Dashboard() {
         searchInputRef={searchInputRef}
       />
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!groupToDelete} onOpenChange={(open) => !open && setGroupToDelete(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleConfirmDelete();
+            }
+        }}>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete group?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -140,7 +144,11 @@ export function Dashboard() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+                onClick={handleConfirmDelete}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                autoFocus // Focus delete button by default
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

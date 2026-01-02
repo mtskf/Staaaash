@@ -120,7 +120,14 @@ export async function getGroupsFromFirebase(userId: string): Promise<Group[]> {
     const data = await response.json();
     if (!data) return [];
 
-    return Object.values(data) as Group[];
+    // Ensure all groups have items array (Firebase drops empty arrays) and return
+    return Object.values(data).map((group) => {
+      const g = group as Group;
+      return {
+        ...g,
+        items: g.items || []
+      };
+    });
   } catch (error) {
     console.error('Error fetching groups:', error);
     return [];
