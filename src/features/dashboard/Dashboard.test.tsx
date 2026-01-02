@@ -18,6 +18,7 @@ vi.mock('@/lib/storage', () => ({
     get: vi.fn(),
     updateGroups: vi.fn(),
   },
+  initFirebaseSync: vi.fn(),
   StorageQuotaError: class extends Error {}
 }));
 
