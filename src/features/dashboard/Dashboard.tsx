@@ -131,12 +131,7 @@ export function Dashboard() {
       />
 
       <AlertDialog open={!!groupToDelete} onOpenChange={(open) => !open && setGroupToDelete(null)}>
-        <AlertDialogContent onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                handleConfirmDelete();
-            }
-        }}>
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete group?</AlertDialogTitle>
             <AlertDialogDescription>
