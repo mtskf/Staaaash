@@ -7,8 +7,13 @@
     "tabs",
     "storage",
     "favicon",
-    "contextMenus"
+    "contextMenus",
+    "identity"
   ],
+  "oauth2": {
+    "client_id": "415055479618-gccjfc9fvfvlfh4rt6dsrl3m8ttv2phm.apps.googleusercontent.com",
+    "scopes": ["openid", "email", "profile"]
+  },
   "action": {},
   "background": {
     "service_worker": "background.js"

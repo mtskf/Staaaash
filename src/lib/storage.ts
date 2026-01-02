@@ -1,60 +1,115 @@
 import type { StorageSchema, Group } from "@/types";
+import {
+  getCurrentUser,
+  onAuthStateChanged,
+  saveGroupsToFirebase,
+  subscribeToGroups
+} from './firebase';
 
 const IS_DEV = import.meta.env.DEV;
 
-// Mock storage for development outside extension environment
-const mockStorage: StorageSchema = {
-  groups: []
-};
+// Local storage key for chrome.storage.local
+const LOCAL_STORAGE_KEY = 'staaaash_groups';
 
-export class StorageQuotaError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "StorageQuotaError";
+// Keep track of Firebase subscription
+let firebaseUnsubscribe: (() => void) | null = null;
+let syncCallback: ((groups: Group[]) => void) | null = null;
+
+/**
+ * Initialize Firebase sync for authenticated user
+ * This should be called when user signs in
+ */
+export function initFirebaseSync(onGroupsUpdated: (groups: Group[]) => void) {
+  // Clean up existing subscription
+  if (firebaseUnsubscribe) {
+    firebaseUnsubscribe();
+    firebaseUnsubscribe = null;
+  }
+
+  syncCallback = onGroupsUpdated;
+
+  // Listen to auth state changes
+  onAuthStateChanged((user) => {
+    if (firebaseUnsubscribe) {
+      firebaseUnsubscribe();
+      firebaseUnsubscribe = null;
+    }
+
+    if (user) {
+      // Subscribe to Firebase real-time updates
+      firebaseUnsubscribe = subscribeToGroups(user.uid, (groups) => {
+        // Update local cache
+        saveToLocal(groups);
+        // Notify listeners
+        syncCallback?.(groups);
+      });
+    }
+  });
+}
+
+/**
+ * Save groups to local storage (chrome.storage.local)
+ */
+async function saveToLocal(groups: Group[]): Promise<void> {
+  if (IS_DEV && !chrome.storage) {
+    localStorage.setItem('staaaash-storage', JSON.stringify({ groups }));
+    return;
+  }
+
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.set({ [LOCAL_STORAGE_KEY]: groups }, () => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
+/**
+ * Get groups from local storage
+ */
+async function getFromLocal(): Promise<Group[]> {
+  if (IS_DEV && !chrome.storage) {
+    const local = localStorage.getItem('staaaash-storage');
+    return local ? JSON.parse(local).groups || [] : [];
+  }
+
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get([LOCAL_STORAGE_KEY], (result: Record<string, unknown>) => {
+      if (chrome.runtime.lastError) {
+        reject(new Error(chrome.runtime.lastError.message));
+        return;
+      }
+      resolve((result[LOCAL_STORAGE_KEY] as Group[]) || []);
+    });
+  });
+}
+
+/**
+ * Sync groups to Firebase if user is authenticated
+ */
+async function syncToFirebase(groups: Group[]): Promise<void> {
+  const user = getCurrentUser();
+  if (user) {
+    await saveGroupsToFirebase(user.uid, groups);
   }
 }
 
 export const storage = {
   get: async (): Promise<StorageSchema> => {
-    if (IS_DEV && !chrome.storage) {
-      const local = localStorage.getItem("staaaash-storage");
-      return local ? JSON.parse(local) : mockStorage;
-    }
-
-    return new Promise((resolve, reject) => {
-      chrome.storage.sync.get(["groups"], (result: Record<string, unknown>) => {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
-          return;
-        }
-        resolve({ groups: (result.groups as Group[]) || [] });
-      });
-    });
+    const groups = await getFromLocal();
+    return { groups };
   },
 
   set: async (data: Partial<StorageSchema>): Promise<void> => {
-    if (IS_DEV && !chrome.storage) {
-      const current = localStorage.getItem("staaaash-storage");
-      const parsed = current ? JSON.parse(current) : mockStorage;
-      const newData = { ...parsed, ...data };
-      localStorage.setItem("staaaash-storage", JSON.stringify(newData));
-      return;
+    if (data.groups) {
+      // Save to local storage
+      await saveToLocal(data.groups);
+      // Sync to Firebase if authenticated
+      await syncToFirebase(data.groups);
     }
-
-    return new Promise((resolve, reject) => {
-      chrome.storage.sync.set(data, () => {
-        if (chrome.runtime.lastError) {
-          const errorMessage = chrome.runtime.lastError.message || "Storage error";
-          if (errorMessage.includes("QUOTA_BYTES") || errorMessage.includes("quota")) {
-            reject(new StorageQuotaError("Storage quota exceeded. Try removing some groups."));
-          } else {
-            reject(new Error(errorMessage));
-          }
-          return;
-        }
-        resolve();
-      });
-    });
   },
 
   addGroup: async (group: Group): Promise<Group[]> => {
@@ -76,16 +131,16 @@ export const storage = {
     return groups;
   },
 
-  // Get estimated storage usage
+  // Get estimated storage usage (local storage)
   getUsage: async (): Promise<{ bytesUsed: number; quotaBytes: number }> => {
     if (IS_DEV && !chrome.storage) {
-      const local = localStorage.getItem("staaaash-storage") || "";
-      return { bytesUsed: local.length, quotaBytes: 102400 };
+      const local = localStorage.getItem('staaaash-storage') || '';
+      return { bytesUsed: local.length, quotaBytes: 10485760 }; // 10MB
     }
 
     return new Promise((resolve) => {
-      chrome.storage.sync.getBytesInUse(null, (bytesUsed) => {
-        resolve({ bytesUsed, quotaBytes: chrome.storage.sync.QUOTA_BYTES });
+      chrome.storage.local.getBytesInUse(null, (bytesUsed) => {
+        resolve({ bytesUsed, quotaBytes: chrome.storage.local.QUOTA_BYTES });
       });
     });
   },
@@ -106,3 +161,11 @@ export const storage = {
     return data.groups;
   }
 };
+
+// Keep StorageQuotaError for backward compatibility (though less likely to occur with local storage)
+export class StorageQuotaError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "StorageQuotaError";
+  }
+}

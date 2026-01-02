@@ -1,4 +1,4 @@
-import { storage } from '../lib/storage';
+import { storage } from './storage';
 import { v4 as uuidv4 } from 'uuid';
 import type { TabItem, Group } from '../types';
 

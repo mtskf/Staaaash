@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { toast } from 'sonner';
-import { storage, StorageQuotaError } from '@/lib/storage';
+import { storage, initFirebaseSync, StorageQuotaError } from '@/lib/storage';
 import type { Group, TabItem } from '@/types';
 
 export interface FlattenedItem {
@@ -14,14 +14,19 @@ export function useGroups() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const loadGroups = useCallback(async () => {
-    const data = await storage.get();
-    setGroups(data.groups.sort((a, b) => a.order - b.order));
-  }, []);
-
   useEffect(() => {
-    loadGroups();
-  }, [loadGroups]);
+    // Load initial data from local storage
+    const loadInitialData = async () => {
+      const data = await storage.get();
+      setGroups(data.groups.sort((a, b) => a.order - b.order));
+    };
+    loadInitialData();
+
+    // Initialize Firebase sync - this will update groups when remote changes occur
+    initFirebaseSync((syncedGroups) => {
+      setGroups(syncedGroups.sort((a, b) => a.order - b.order));
+    });
+  }, []);
 
   const updateGroups = useCallback(async (newGroups: Group[]) => {
     // Optimistic update

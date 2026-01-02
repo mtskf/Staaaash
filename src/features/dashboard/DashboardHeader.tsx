@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Kbd } from '@/components/ui/kbd';
+import { AuthButton } from '@/components/AuthButton';
 import { storage } from '@/lib/storage';
 import type { Group } from '@/types';
 
@@ -59,7 +60,10 @@ export function DashboardHeader({
 
   return (
     <header className="mb-8 max-w-3xl mx-auto w-full">
-      <img src="/logo.png" alt="Staaaash" className="h-8 mb-8" />
+      <div className="flex items-center justify-between mb-8">
+        <img src="/logo.png" alt="Staaaash" className="h-8" />
+        <AuthButton />
+      </div>
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
