@@ -15,6 +15,9 @@ const LOCAL_STORAGE_KEY = 'staaaash_groups';
 let firebaseUnsubscribe: (() => void) | null = null;
 let syncCallback: ((groups: Group[]) => void) | null = null;
 
+// Local storage key for tracking last synced state (Base for 3-way merge)
+const LAST_SYNCED_KEY = 'staaaash_last_synced';
+
 /**
  * Initialize Firebase sync for authenticated user
  * This should be called when user signs in
@@ -38,20 +41,51 @@ export function initFirebaseSync(onGroupsUpdated: (groups: Group[]) => void) {
     if (user) {
       // Subscribe to Firebase real-time updates
       firebaseUnsubscribe = subscribeToGroups(user.uid, async (firebaseGroups) => {
-        // Get current local groups
+        // 1. Get current local groups (Local)
         const localGroups = await getFromLocal();
 
-        // Merge: keep local groups that don't exist in Firebase (they're new and not yet synced)
+        // 2. Get last synced groups (Base)
+        const lastSyncedGroups = await getLastSynced();
+        const lastSyncedIds = new Set(lastSyncedGroups.map(g => g.id));
+
+        // 3. Determine Merged State
         const firebaseIds = new Set(firebaseGroups.map(g => g.id));
-        const newLocalGroups = localGroups.filter(g => !firebaseIds.has(g.id));
+        const mergedGroups: Group[] = [];
 
-        // Combine: Firebase groups + new local groups
-        const mergedGroups = [...firebaseGroups, ...newLocalGroups];
+        // Add all Firebase groups (Remote wins for updates/existence)
+        mergedGroups.push(...firebaseGroups);
 
-        // Save merged result to local
+        // Check local groups to see if any are NEW and should be preserved
+        const newLocalGroups: Group[] = [];
+        for (const localGroup of localGroups) {
+            // If it exists in Firebase, it's already added above (mapped by Remote data)
+            if (firebaseIds.has(localGroup.id)) continue;
+
+            // If it's NOT in Firebase:
+            // Check if it was present in the last sync (Base)
+            if (lastSyncedIds.has(localGroup.id)) {
+                // It was in Base but not in Remote -> It implies Remote Deletion.
+                // Action: Delete locally (do not add to mergedGroups)
+                console.log(`[Sync] Group separatedly deleted remotely: ${localGroup.id}`);
+            } else {
+                // It was NOT in Base and NOT in Remote -> It implies Local Creation.
+                // Action: Keep it and push to Remote later
+                mergedGroups.push(localGroup);
+                newLocalGroups.push(localGroup);
+            }
+        }
+
+        // 4. Save merged result to local
         await saveToLocal(mergedGroups);
 
-        // If there were new local groups, sync them to Firebase
+        // 5. Update Base (Last Synced) to match the new committed state
+        // We include newLocalGroups in the 'base' because we are about to push them.
+        // Actually, strictly speaking, we should update Base after push success,
+        // but for eventual consistency in this flow, updating here is acceptable
+        // as the next poll will converge.
+        await saveLastSynced(mergedGroups);
+
+        // 6. If there were newly created local groups, sync them to Firebase
         if (newLocalGroups.length > 0) {
           await syncToFirebase(mergedGroups);
         }
@@ -60,6 +94,36 @@ export function initFirebaseSync(onGroupsUpdated: (groups: Group[]) => void) {
         syncCallback?.(mergedGroups);
       });
     }
+  });
+}
+
+/**
+ * Get last synced groups (Base state)
+ */
+async function getLastSynced(): Promise<Group[]> {
+  if (IS_DEV && !chrome.storage) {
+     const data = localStorage.getItem(LAST_SYNCED_KEY);
+     return data ? JSON.parse(data) : [];
+  }
+
+  return new Promise((resolve) => {
+    chrome.storage.local.get([LAST_SYNCED_KEY], (result) => {
+      resolve((result[LAST_SYNCED_KEY] as Group[]) || []);
+    });
+  });
+}
+
+/**
+ * Save last synced groups (Base state)
+ */
+async function saveLastSynced(groups: Group[]): Promise<void> {
+  if (IS_DEV && !chrome.storage) {
+    localStorage.setItem(LAST_SYNCED_KEY, JSON.stringify(groups));
+    return;
+  }
+
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ [LAST_SYNCED_KEY]: groups }, () => resolve());
   });
 }
 
@@ -125,6 +189,8 @@ export const storage = {
       await saveToLocal(data.groups);
       // Sync to Firebase if authenticated
       await syncToFirebase(data.groups);
+      // Update Base state as we have successfully pushed our local state
+      await saveLastSynced(data.groups);
     }
   },
 
