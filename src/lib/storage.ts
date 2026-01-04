@@ -21,6 +21,7 @@ let syncCallback: ((groups: Group[]) => void) | null = null;
 const LAST_SYNCED_KEY = 'staaaash_last_synced';
 
 // Track last received remote data to skip unnecessary processing
+// Reset on: auth state change, Firebase sync failure (to allow retry)
 let lastRemoteDataHash: string | null = null;
 
 /**
@@ -28,7 +29,6 @@ let lastRemoteDataHash: string | null = null;
  * Uses JSON.stringify for simplicity - sufficient for change detection
  */
 function hashGroups(groups: Group[]): string {
-  // Sort by ID for consistent ordering before hashing
   const sorted = [...groups].sort((a, b) => a.id.localeCompare(b.id));
   return JSON.stringify(sorted);
 }
@@ -93,6 +93,8 @@ export function initFirebaseSync(onGroupsUpdated: (groups: Group[]) => void) {
         if (newLocalGroups.length > 0) {
           syncToFirebase(mergedGroups).catch((error) => {
             console.warn('Firebase sync failed (will retry on next sync):', error);
+            // Reset hash so next poll will retry the sync
+            lastRemoteDataHash = null;
           });
         }
 
