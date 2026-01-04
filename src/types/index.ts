@@ -14,6 +14,7 @@ export interface Group {
   items: TabItem[];
   color?: string;
   createdAt: number;
+  updatedAt: number; // Last modification timestamp for LWW conflict resolution
 }
 
 export interface StorageSchema {

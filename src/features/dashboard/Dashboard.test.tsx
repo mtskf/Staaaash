@@ -31,7 +31,8 @@ const mockGroup: Group = {
   pinned: false,
   collapsed: false,
   order: 0,
-  createdAt: Date.now()
+  createdAt: Date.now(),
+  updatedAt: Date.now()
 };
 
 describe('Dashboard', () => {

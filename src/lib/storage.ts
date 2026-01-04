@@ -6,6 +6,7 @@ import {
   subscribeToGroups
 } from './firebase';
 import { mergeGroups } from './sync-utils';
+import { migrateAddUpdatedAt } from './migration';
 
 const IS_DEV = import.meta.env.DEV;
 
@@ -24,6 +25,9 @@ const LAST_SYNCED_KEY = 'staaaash_last_synced';
  * This should be called when user signs in
  */
 export function initFirebaseSync(onGroupsUpdated: (groups: Group[]) => void) {
+  // Run updatedAt migration
+  migrateAddUpdatedAt().catch(console.error);
+
   // Clean up existing subscription
   if (firebaseUnsubscribe) {
     firebaseUnsubscribe();
@@ -153,6 +157,40 @@ async function syncToFirebase(groups: Group[]): Promise<void> {
   }
 }
 
+/**
+ * Set updatedAt timestamp for groups that have changed
+ * Only updates timestamp when actual content changes
+ */
+function setUpdatedTimestamp(oldGroups: Group[], newGroups: Group[]): Group[] {
+  const now = Date.now();
+  const oldMap = new Map(oldGroups.map(g => [g.id, g]));
+
+  return newGroups.map(newGroup => {
+    const oldGroup = oldMap.get(newGroup.id);
+
+    if (!oldGroup) {
+      // New group
+      return {
+        ...newGroup,
+        createdAt: newGroup.createdAt || now,
+        updatedAt: now
+      };
+    }
+
+    // Deep comparison excluding updatedAt
+    const { updatedAt: _oldUpdated, ...oldWithoutTimestamp } = oldGroup;
+    const { updatedAt: _newUpdated, ...newWithoutTimestamp } = newGroup;
+    const hasChanged = JSON.stringify(oldWithoutTimestamp) !== JSON.stringify(newWithoutTimestamp);
+
+    if (hasChanged) {
+      return { ...newGroup, updatedAt: now };
+    }
+
+    // No change - preserve existing timestamp
+    return { ...newGroup, updatedAt: oldGroup.updatedAt || oldGroup.createdAt };
+  });
+}
+
 export const storage = {
   get: async (): Promise<StorageSchema> => {
     const groups = await getFromLocal();
@@ -176,8 +214,14 @@ export const storage = {
       ? Math.min(...data.groups.map(g => g.order || 0))
       : 0;
 
+    const now = Date.now();
     // Assign an order lower than the current minimum to place it at the start
-    const newGroup = { ...group, order: minOrder - 1 };
+    const newGroup = {
+      ...group,
+      order: minOrder - 1,
+      createdAt: group.createdAt || now,
+      updatedAt: now
+    };
 
     const newGroups = [...data.groups, newGroup];
     await storage.set({ groups: newGroups });
@@ -185,8 +229,10 @@ export const storage = {
   },
 
   updateGroups: async (groups: Group[]): Promise<Group[]> => {
-    await storage.set({ groups });
-    return groups;
+    const currentData = await storage.get();
+    const groupsWithTimestamps = setUpdatedTimestamp(currentData.groups, groups);
+    await storage.set({ groups: groupsWithTimestamps });
+    return groupsWithTimestamps;
   },
 
   // Get estimated storage usage (local storage)

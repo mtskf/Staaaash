@@ -27,8 +27,20 @@ export function mergeGroups(
   const newLocalGroups: Group[] = [];
 
   for (const localGroup of localGroups) {
-    // If it exists in Remote, it's already added above
-    if (remoteIds.has(localGroup.id)) continue;
+    if (remoteIds.has(localGroup.id)) {
+      // Group exists in both - use Last Write Wins
+      const remoteGroup = remoteGroups.find(g => g.id === localGroup.id)!;
+      const localUpdated = localGroup.updatedAt || localGroup.createdAt;
+      const remoteUpdated = remoteGroup.updatedAt || remoteGroup.createdAt;
+
+      if (localUpdated > remoteUpdated) {
+        // Local is newer - replace remote version in mergedGroups
+        const index = mergedGroups.findIndex(g => g.id === localGroup.id);
+        mergedGroups[index] = localGroup;
+        newLocalGroups.push(localGroup); // Mark for upload to Firebase
+      }
+      continue;
+    }
 
     // If it's NOT in Remote:
     if (baseIds.has(localGroup.id)) {
