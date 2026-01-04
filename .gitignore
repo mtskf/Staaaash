@@ -115,7 +115,6 @@ dist
 
 # Gemini artifacts
 .gemini/
-.agent/
 
 # Misc
 .DS_Store

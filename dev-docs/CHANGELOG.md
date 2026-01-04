@@ -1,6 +1,7 @@
 # Changelog
 
-## [0.2.0] - Firebase Sync & Reliability
+## [Unreleased]
+- **Target Version**: 0.2.0
 
 ### Added
 - **Cross-Device Sync**: Real-time synchronization of groups and tabs across devices using Firebase Realtime Database.
