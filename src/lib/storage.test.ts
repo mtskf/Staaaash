@@ -85,7 +85,9 @@ describe('storage', () => {
 
     expect(saved?.order).toBe(1);
     expect(store[LOCAL_STORAGE_KEY]).toEqual(groups);
-    expect(store[LAST_SYNCED_KEY]).toEqual(groups);
+    // LAST_SYNCED_KEY is NOT set when user is not authenticated
+    // This prevents pre-login groups from being deleted during 3-way merge
+    expect(store[LAST_SYNCED_KEY]).toBeUndefined();
   });
 
   it('exports and imports groups as JSON', async () => {

@@ -59,6 +59,19 @@
 - **Decision**: Use `sonner`.
 - **Rationale**: Lightweight, customizable, and shadcn/ui friendly.
 
+## 2026-01-05: Background Script Build Configuration
+- **Context**: Background script imports `lib/storage.ts` which imports Firebase with `import.meta.env.VITE_*`.
+- **Decision**: Define `import.meta.env` as `{DEV:false}` in esbuild, making all VITE_* return `undefined`.
+- **Logic**:
+  - esbuild replaces `import.meta.env` with `{DEV:false}`.
+  - VITE_* properties are `undefined`, fall back to `''` via `|| ''`.
+  - Firebase initializes with empty config but `getCurrentUser()` returns `null`.
+  - `syncToFirebase()` exits early when user is `null`.
+- **Consequences**:
+  - Background script can share storage code without Firebase auth.
+  - Any new `import.meta.env.*` usage in background code will be `undefined`.
+  - If Firebase features are needed in background, env vars must be explicitly defined.
+
 ## 2024-12-26: Simplification
 - **Decision**: Remove tooltips.
 - **Rationale**: Keep UI clean; shortcuts documented elsewhere.
