@@ -40,6 +40,10 @@ let authUnsubscribe: (() => void) | null = null;
  * Initialize Firebase sync for authenticated user
  * This should be called when user signs in
  * Returns an unsubscribe function to clean up all subscriptions
+ *
+ * NOTE: This is a singleton - only one consumer should call this at a time.
+ * Currently only useGroups() calls this. If multiple consumers are needed,
+ * consider using a Context provider or ref-counting pattern.
  */
 export function initFirebaseSync(onGroupsUpdated: (groups: Group[]) => void): () => void {
   // Run updatedAt migration
