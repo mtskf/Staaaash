@@ -1,19 +1,21 @@
 # Changelog
 
-## [Unreleased]
-- **Target Version**: 0.2.0
+## [Unreleased] (Target: 0.2.0)
 
 ### Added
-- **Cross-Device Sync**: Real-time synchronization of groups and tabs across devices using Firebase Realtime Database.
-- **Google Authentication**: Seamless login using your Google account via `chrome.identity.launchWebAuthFlow`.
-- **Delete Confirmation**: Safe deletion with confirmation dialog for groups (Keyboard support: Enter to confirm, Esc to cancel).
+- **Cross-Device Sync**: Sync groups/tabs via Firebase Realtime Database.
+- **Google Authentication**: Login via `chrome.identity.launchWebAuthFlow`.
+- **Delete Confirmation**: Confirm dialog for group deletion (Enter confirm, Esc cancel).
 
 ### Changed
-- **Sync Architecture**: Switched from Firebase SDK to REST API to comply with Manifest V3 CSP restrictions.
-- **Sync Logic**: Implemented robust 3-way merge logic to correctly handle offline deletions and prevent "zombie group" resurrection.
-- **Data Fetching**: Added fallback for empty arrays to prevent crashes when fetching data from Firebase.
+- **Sync Architecture**: Switched from Firebase SDK to REST API for MV3 CSP compliance.
+- **Sync Logic**: 3-way merge to handle offline deletions and avoid "zombie" groups.
+- **Data Fetching**: Fallback for empty arrays when loading from Firebase.
 
 ### Fixed
 - Fixed crash when a group became empty (Firebase data structure mismatch).
 - Fixed race condition where local changes could be overwritten by initial sync.
 - Fixed issue where `Enter` key on Cancel button would trigger deletion in dialog.
+- Fixed local changes being overwritten by "Remote Wins" during sync. Implemented Last Write Wins (LWW) conflict resolution using `updatedAt` timestamps ([PR #27](https://github.com/mtskf/Staaaash/pull/27)).
+- Fixed `storage.set` failing when Firebase is offline. Made Firebase sync fire-and-forget to ensure local saves always succeed ([PR #29](https://github.com/mtskf/Staaaash/pull/29)).
+- Fixed unnecessary storage writes on every Firebase poll. Added hash-based change detection to skip processing when remote data is unchanged ([PR #30](https://github.com/mtskf/Staaaash/pull/30)).

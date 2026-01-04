@@ -1,26 +1,27 @@
 # Specifications (SPEC)
 
 ## Product Vision
-A modern, minimalist tab manager extension for Chrome (Staaaash) that helps users declutter their browser and save memory by organizing tabs into named groups.
+A modern, minimalist Chrome tab manager that declutters and saves memory by grouping tabs.
 
 ## Core Features
 ### 1. Tab Management
-- **Save Tabs**: Save all open tabs (excluding extension pages) in the current window to a new group.
+- **Save Tabs**: Archive all open tabs (excluding extension pages) into a new group.
 - **Restore Tabs**:
     - **Group Restore**: Open all tabs in a group via the "Restore" button.
     - **Individual Restore**: Open single tabs via the external link icon.
-    - **Original Tabs**: Original tabs are closed after saving (Archiving).
+- **Original Tabs**: Close original tabs after archiving.
 - **Remove Tabs**: Delete individual tabs from a group.
 
 ### 2. Group Management
 - **Grouping**: Organize tabs into named collections.
-- **Renaming**: Edit group titles (Auto-focus on creation, Enter key to edit, Escape to cancel).
+- **Renaming**: Edit titles (auto-focus on creation, Enter to confirm, Esc to cancel).
 - **Reordering**: Drag and drop groups to change their order.
-- **Sorting**: New groups are automatically added to the top of the list.
-- **Collapsing**: Collapse/Expand groups to save space.
+- **Sorting**: New groups are added to the top.
+- **Collapsing**: Collapse/expand groups to save space.
 - **Pinning**: Pin important groups to the separate "Pinned" section at the top.
 - **Merging**: Shift+Drag a group onto another to merge them (duplicates auto-removed).
 - **Search**: Filter groups and tabs by title or URL.
+- **Delete Group**: Remove a group from the list (with confirmation).
 
 ### 3. Data Management
 - **Export**: Export all groups to a JSON file.
@@ -28,7 +29,7 @@ A modern, minimalist tab manager extension for Chrome (Staaaash) that helps user
 - **Sync**: Sync groups and tabs across devices using `chrome.storage.local` and Firebase Realtime Database (REST API).
 
 ### 4. UI/UX
-- **Access**: Accessed via extension icon popup or `index.html`.
+- **Access**: Open via extension icon or `index.html`.
 - **Context Menu**: Right-click extension icon to "Open Collections" without archiving.
 - **Dark Mode**: Default dark theme.
 - **Drag and Drop**: Intuitive drag-and-drop for tabs and groups.
