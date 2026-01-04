@@ -30,6 +30,7 @@ const baseGroup: Group = {
   collapsed: false,
   order: 2,
   createdAt: 1,
+  updatedAt: 1,
 };
 
 const secondGroup: Group = {
@@ -40,6 +41,7 @@ const secondGroup: Group = {
   collapsed: false,
   order: 1,
   createdAt: 2,
+  updatedAt: 2,
 };
 
 describe('useGroups', () => {

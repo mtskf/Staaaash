@@ -63,6 +63,7 @@ describe('storage', () => {
       collapsed: false,
       order: 2,
       createdAt: 1,
+      updatedAt: 1,
     };
 
     await storage.set({ groups: [existing] });
@@ -75,6 +76,7 @@ describe('storage', () => {
       collapsed: false,
       order: 999,
       createdAt: 2,
+      updatedAt: 2,
     };
 
     const groups = await storage.addGroup(newGroup);
@@ -95,6 +97,7 @@ describe('storage', () => {
         collapsed: false,
         order: 0,
         createdAt: 1,
+        updatedAt: 1,
       }
     ];
 

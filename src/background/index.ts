@@ -29,14 +29,16 @@ async function archiveTabs(windowId: number, newGroupId?: string) {
 
   // Save to storage
   const groupId = newGroupId || uuidv4();
+  const now = Date.now();
   const newGroup: Group = {
     id: groupId,
     title: `Archive ${new Date().toLocaleString()}`,
     items: tabItems,
     pinned: false,
     collapsed: true,
-    order: Date.now(),
-    createdAt: Date.now()
+    order: now,
+    createdAt: now,
+    updatedAt: now
   };
 
   await storage.addGroup(newGroup);
