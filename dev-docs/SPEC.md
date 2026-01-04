@@ -25,10 +25,10 @@ A modern, minimalist tab manager extension for Chrome (Staaaash) that helps user
 ### 3. Data Management
 - **Export**: Export all groups to a JSON file.
 - **Import**: Import groups from a JSON file (merges with existing).
-- **Sync**: Sync groups and tabs across devices using `chrome.storage.sync`.
+- **Sync**: Sync groups and tabs across devices using `chrome.storage.local` and Firebase Realtime Database (REST API).
 
 ### 4. UI/UX
-- **New Tab Override**: Replaces the default new tab page (Dashboard).
+- **Access**: Accessed via extension icon popup or `index.html`.
 - **Context Menu**: Right-click extension icon to "Open Collections" without archiving.
 - **Dark Mode**: Default dark theme.
 - **Drag and Drop**: Intuitive drag-and-drop for tabs and groups.
@@ -51,6 +51,6 @@ A modern, minimalist tab manager extension for Chrome (Staaaash) that helps user
 | `←` `→` | Collapse / Expand group |
 
 ## Non-Functional Requirements
-- **Performance**: Instant load on new tab.
-- **Privacy**: No external data tracking; all data stays in Chrome Sync.
-- **Storage Limits**: Handle `chrome.storage.sync` quotas gracefully with user notifications.
+- **Performance**: Instant load.
+- **Privacy**: No external data tracking; all data stays in Chrome Storage / Firebase (User's own project).
+- **Storage Limits**: Handle `chrome.storage.local` quotas gracefully.
