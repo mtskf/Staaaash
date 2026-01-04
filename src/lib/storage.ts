@@ -20,6 +20,19 @@ let syncCallback: ((groups: Group[]) => void) | null = null;
 // Local storage key for tracking last synced state (Base for 3-way merge)
 const LAST_SYNCED_KEY = 'staaaash_last_synced';
 
+// Track last received remote data to skip unnecessary processing
+let lastRemoteDataHash: string | null = null;
+
+/**
+ * Generate a simple hash for groups array to detect changes
+ * Uses JSON.stringify for simplicity - sufficient for change detection
+ */
+function hashGroups(groups: Group[]): string {
+  // Sort by ID for consistent ordering before hashing
+  const sorted = [...groups].sort((a, b) => a.id.localeCompare(b.id));
+  return JSON.stringify(sorted);
+}
+
 /**
  * Initialize Firebase sync for authenticated user
  * This should be called when user signs in
@@ -42,10 +55,20 @@ export function initFirebaseSync(onGroupsUpdated: (groups: Group[]) => void) {
       firebaseUnsubscribe();
       firebaseUnsubscribe = null;
     }
+    // Reset hash when auth state changes (new user or logout)
+    lastRemoteDataHash = null;
 
     if (user) {
       // Subscribe to Firebase real-time updates
       firebaseUnsubscribe = subscribeToGroups(user.uid, async (firebaseGroups) => {
+        // Check if remote data has changed since last poll
+        const remoteHash = hashGroups(firebaseGroups);
+        if (remoteHash === lastRemoteDataHash) {
+          // Remote data unchanged - skip merge/save to avoid unnecessary writes
+          return;
+        }
+        lastRemoteDataHash = remoteHash;
+
         // 1. Get current local groups (Local)
         const localGroups = await getFromLocal();
 
