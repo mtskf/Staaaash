@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build && esbuild src/background/index.ts --bundle --outfile=dist/background.js --define:import.meta.env.DEV=false",
+    "build": "tsc -b && vite build && esbuild src/background/index.ts --bundle --outfile=dist/background.js --format=esm --alias:@=./src --define:import.meta.env.DEV=false",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest"
