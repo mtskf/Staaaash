@@ -33,24 +33,32 @@ function hashGroups(groups: Group[]): string {
   return JSON.stringify(sorted);
 }
 
+// Keep track of auth state subscription
+let authUnsubscribe: (() => void) | null = null;
+
 /**
  * Initialize Firebase sync for authenticated user
  * This should be called when user signs in
+ * Returns an unsubscribe function to clean up all subscriptions
  */
-export function initFirebaseSync(onGroupsUpdated: (groups: Group[]) => void) {
+export function initFirebaseSync(onGroupsUpdated: (groups: Group[]) => void): () => void {
   // Run updatedAt migration
   migrateAddUpdatedAt().catch(console.error);
 
-  // Clean up existing subscription
+  // Clean up existing subscriptions
   if (firebaseUnsubscribe) {
     firebaseUnsubscribe();
     firebaseUnsubscribe = null;
+  }
+  if (authUnsubscribe) {
+    authUnsubscribe();
+    authUnsubscribe = null;
   }
 
   syncCallback = onGroupsUpdated;
 
   // Listen to auth state changes
-  onAuthStateChanged((user) => {
+  authUnsubscribe = onAuthStateChanged((user) => {
     if (firebaseUnsubscribe) {
       firebaseUnsubscribe();
       firebaseUnsubscribe = null;
@@ -103,6 +111,20 @@ export function initFirebaseSync(onGroupsUpdated: (groups: Group[]) => void) {
       });
     }
   });
+
+  // Return cleanup function
+  return () => {
+    if (firebaseUnsubscribe) {
+      firebaseUnsubscribe();
+      firebaseUnsubscribe = null;
+    }
+    if (authUnsubscribe) {
+      authUnsubscribe();
+      authUnsubscribe = null;
+    }
+    syncCallback = null;
+    lastRemoteDataHash = null;
+  };
 }
 
 /**

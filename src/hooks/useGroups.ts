@@ -23,9 +23,12 @@ export function useGroups() {
     loadInitialData();
 
     // Initialize Firebase sync - this will update groups when remote changes occur
-    initFirebaseSync((syncedGroups) => {
+    const unsubscribe = initFirebaseSync((syncedGroups) => {
       setGroups(syncedGroups.sort((a, b) => a.order - b.order));
     });
+
+    // Cleanup on unmount
+    return unsubscribe;
   }, []);
 
   const updateGroups = useCallback(async (newGroups: Group[]) => {

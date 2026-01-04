@@ -2,7 +2,6 @@
 
 ## Active
 
-- [ ] 🚨🪲 `initFirebaseSync` の購読解除がなく、アンマウント後もポーリングが残る。クリーンアップ用の unsubscribe を `useGroups` から返して破棄する。 (`src/lib/storage.ts`, `src/hooks/useGroups.ts`)
 - [ ] 🚨🪲 `archiveTabs` が `await` 中に再実行されるとタブ保存と削除が競合し、データ重複やエラーが起きる。処理中の重複実行をロックする。 (`src/background/index.ts`)
 - [ ] 🚨🧹 Storage統合: `background/storage.ts` が `lib/storage.ts` と重複している。background から lib/storage を直接使用し、重複ファイルを削除する。 (`src/background/storage.ts`, `src/background/index.ts`)
 - [ ] 🚨🧹 logic.ts整理: `mergeGroups`, `moveTabToGroup`, `reorderTabInGroup` がテストでのみ使用され、実際は `useDashboardDnD` でインライン実装。削除して `filterGroups` のみ残すか、DRY化する。 (`src/lib/logic.ts`, `src/hooks/useDashboardDnD.ts`)
@@ -22,6 +21,7 @@
 
 ## Done
 
+- [x] 🚨🪲 `initFirebaseSync` の購読解除がなく、アンマウント後もポーリングが残る。クリーンアップ用の unsubscribe を `useGroups` から返して破棄する。 ✅
 - [x] 🚨🪲 既存グループのローカル変更が「Remote Wins」で上書きされる。LWW実装。 ✅ https://github.com/mtskf/Staaaash/pull/27
 - [x] 🚨🪲 `storage.set` が Firebase 失敗時に例外。Fire-and-forget化。 ✅ https://github.com/mtskf/Staaaash/pull/29
 - [x] 🚨🪲 ポーリングが未変更でも書き戻し。ハッシュ検出でスキップ。 ✅ https://github.com/mtskf/Staaaash/pull/30
