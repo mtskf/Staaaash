@@ -142,12 +142,13 @@ const UPDATED_AT_MIGRATION_KEY = 'staaaash_updatedAt_migrated';
  * Initialize with createdAt value for backward compatibility
  */
 export async function migrateAddUpdatedAt(): Promise<void> {
+  // Skip migration in non-extension contexts (e.g., tests)
+  if (!chrome.storage?.local) {
+    return;
+  }
+
   // Check if already migrated
   const migrated = await new Promise<boolean>((resolve) => {
-    if (!chrome.storage?.local) {
-      resolve(false);
-      return;
-    }
     chrome.storage.local.get([UPDATED_AT_MIGRATION_KEY], (result: Record<string, unknown>) => {
       resolve(!!result[UPDATED_AT_MIGRATION_KEY]);
     });
@@ -179,7 +180,7 @@ export async function migrateAddUpdatedAt(): Promise<void> {
   // Initialize updatedAt with createdAt
   const migratedGroups = groups.map(g => ({
     ...g,
-    updatedAt: g.updatedAt || g.createdAt
+    updatedAt: g.updatedAt ?? g.createdAt
   }));
 
   // Save back

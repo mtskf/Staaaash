@@ -187,7 +187,7 @@ function setUpdatedTimestamp(oldGroups: Group[], newGroups: Group[]): Group[] {
     }
 
     // No change - preserve existing timestamp
-    return { ...newGroup, updatedAt: oldGroup.updatedAt || oldGroup.createdAt };
+    return { ...newGroup, updatedAt: oldGroup.updatedAt ?? oldGroup.createdAt };
   });
 }
 

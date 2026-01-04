@@ -30,8 +30,8 @@ export function mergeGroups(
     if (remoteIds.has(localGroup.id)) {
       // Group exists in both - use Last Write Wins
       const remoteGroup = remoteGroups.find(g => g.id === localGroup.id)!;
-      const localUpdated = localGroup.updatedAt || localGroup.createdAt;
-      const remoteUpdated = remoteGroup.updatedAt || remoteGroup.createdAt;
+      const localUpdated = localGroup.updatedAt ?? localGroup.createdAt;
+      const remoteUpdated = remoteGroup.updatedAt ?? remoteGroup.createdAt;
 
       if (localUpdated > remoteUpdated) {
         // Local is newer - replace remote version in mergedGroups
