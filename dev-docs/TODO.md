@@ -1,12 +1,16 @@
 # TODO
 
-- [x] 🚨🪲 既存グループのローカル変更が「Remote Wins」で上書きされるため、オフライン編集や反映遅延時に変更が消える。更新時刻/バージョンを使った3-way merge、または差分マージを実装する。 (`src/lib/sync-utils.ts`, `src/lib/storage.ts`) ✅ https://github.com/mtskf/Staaaash/pull/27
-- [x] 🚨🪲 `storage.set` が `syncToFirebase` の失敗(オフライン等)で例外を投げ、ローカル保存も失敗したように振る舞う。非同期でバックグラウンド実行するか、失敗をキャッチしてキューに入れる。 (`src/lib/storage.ts`) ✅ https://github.com/mtskf/Staaaash/pull/29
-- [x] 🚨🪲 ポーリング結果を無条件にローカルへ書き戻すため、リモートが古い場合にローカル変更が巻き戻る。ETag/更新ハッシュ比較や変更検出を入れて、未変更ならマージ・保存をスキップする。 (`src/lib/firebase.ts`, `src/lib/storage.ts`) ✅ https://github.com/mtskf/Staaaash/pull/30
+## Active
+
 - [ ] 🚨🪲 `initFirebaseSync` の購読解除がなく、アンマウント後もポーリングが残る。クリーンアップ用の unsubscribe を `useGroups` から返して破棄する。 (`src/lib/storage.ts`, `src/hooks/useGroups.ts`)
+- [ ] 🚨🪲 `archiveTabs` が `await` 中に再実行されるとタブ保存と削除が競合し、データ重複やエラーが起きる。処理中の重複実行をロックする。 (`src/background/index.ts`)
+- [ ] 🚨🧹 Storage統合: `background/storage.ts` が `lib/storage.ts` と重複している。background から lib/storage を直接使用し、重複ファイルを削除する。 (`src/background/storage.ts`, `src/background/index.ts`)
+- [ ] 🚨🧹 logic.ts整理: `mergeGroups`, `moveTabToGroup`, `reorderTabInGroup` がテストでのみ使用され、実際は `useDashboardDnD` でインライン実装。削除して `filterGroups` のみ残すか、DRY化する。 (`src/lib/logic.ts`, `src/hooks/useDashboardDnD.ts`)
+- [ ] 🚨🧹 mergeGroups命名: 関数が2箇所に異なる用途で存在し混乱を招く。命名を明確化する（`mergeGroupsThreeWay` 等）。 (`src/lib/sync-utils.ts`, `src/lib/migration.ts`)
+- [ ] 🚨🧹 GroupOps集約: DnD/Keyboardの操作ロジックを共通化し、重複実装を整理する。 (`src/hooks/useDashboardDnD.ts`, `src/hooks/useKeyboardNav.ts`)
+- [ ] 🚨🧹 Sync分割: `storage.ts` が複数の責務を持ち肥大化（306行）。同期ロジックを `sync-manager.ts` に分離し、ストレージ操作のみに限定する。 (`src/lib/storage.ts`)
 - [ ] 🟡🧹 キーボード並び替えで `order` が更新されず、再読み込みで並びが戻る。並べ替え時に `order` を再計算する。 (`src/hooks/useKeyboardNav.ts`)
-- [ ] 🟡🪲 `archiveTabs` が `await` 中に再実行されるとタブ保存と削除が競合し、データ重複やエラーが起きる。処理中の重複実行をロックする。 (`src/background/index.ts`)
-- [ ] 🟡🧹 `src/lib/migration.ts` の `migrateToFirebase` がどこからも呼ばれていない。`chrome.storage.sync` からの移行が必要なら、認証完了時や起動時に呼び出す。 (`src/components/AuthButton.tsx` or `src/lib/firebase.ts`)
+- [ ] 🟡❓ `src/lib/migration.ts` の `migrateToFirebase` がどこからも呼ばれていない。移行機能が不要なら削除、必要なら認証完了時に呼び出す。**要決定** (`src/lib/migration.ts`)
 - [ ] 🟡🧹 グループD&Dの並び替えで全グループの `order` を付け直すため、ピン/非ピンの順序が不意に崩れる可能性がある。セクション内のみで `order` を更新する。 (`src/hooks/useDashboardDnD.ts`)
 - [ ] 🟡✨ 背景スクリプトで追加されたグループが、開いているダッシュボードに即時反映されない。`chrome.storage.onChanged` でローカル更新を監視する。 (`src/hooks/useGroups.ts`)
 - [ ] 🟡🧹 `GroupCard` の `newTitle` が外部更新と同期されず、同期更新後の編集で古いタイトルが出る。`group.title` 変更時に state を更新する。 (`src/features/dashboard/GroupCard.tsx`)
@@ -15,3 +19,9 @@
 - [ ] 🟢✨ `GroupCard` や `TabCard` のアイコンボタンに `aria-label` がなく、アクセシビリティが不十分。適切なラベルを付与する。 (`src/features/dashboard/GroupCard.tsx`, `src/features/dashboard/TabCard.tsx`)
 - [ ] 🟢✨ UIのテキスト(Archive, Delete等)がハードコードされている。i18n対応の準備として定数化または `chrome.i18n` 化を検討する。 (`src/constants.ts`, components)
 - [ ] 🟢🪲 `constants.ts` がモジュール読み込み時に `chrome.runtime` を参照し、テスト環境で例外になる可能性がある。遅延評価かガードを入れる。 (`src/constants.ts`)
+
+## Done
+
+- [x] 🚨🪲 既存グループのローカル変更が「Remote Wins」で上書きされる。LWW実装。 ✅ https://github.com/mtskf/Staaaash/pull/27
+- [x] 🚨🪲 `storage.set` が Firebase 失敗時に例外。Fire-and-forget化。 ✅ https://github.com/mtskf/Staaaash/pull/29
+- [x] 🚨🪲 ポーリングが未変更でも書き戻し。ハッシュ検出でスキップ。 ✅ https://github.com/mtskf/Staaaash/pull/30
