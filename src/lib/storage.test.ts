@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { Group } from '@/types';
 import { storage } from './storage';
+import { getCurrentUser, saveGroupsToFirebase } from '@/lib/firebase';
 
 vi.mock('@/lib/firebase', () => ({
   getCurrentUser: vi.fn(() => null),
@@ -116,5 +117,44 @@ describe('storage', () => {
     await expect(storage.importData('{"foo":[]}'))
       .rejects
       .toThrow('Invalid data format: missing groups array');
+  });
+
+  it('saves locally even when Firebase sync fails', async () => {
+    // Setup: user is authenticated and Firebase will fail
+    vi.mocked(getCurrentUser).mockReturnValue({ uid: 'test-user' } as any);
+    vi.mocked(saveGroupsToFirebase).mockRejectedValue(new Error('Network error'));
+
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const groups: Group[] = [
+      {
+        id: 'g1',
+        title: 'Test Group',
+        items: [],
+        pinned: false,
+        collapsed: false,
+        order: 0,
+        createdAt: 1,
+        updatedAt: 1,
+      }
+    ];
+
+    // Should not throw even though Firebase fails
+    await expect(storage.set({ groups })).resolves.not.toThrow();
+
+    // Wait for fire-and-forget promise to settle
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    // Local storage should have the data
+    expect(store[LOCAL_STORAGE_KEY]).toEqual(groups);
+    expect(store[LAST_SYNCED_KEY]).toEqual(groups);
+
+    // Warning should be logged
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Firebase sync failed (will retry on next sync):',
+      expect.any(Error)
+    );
+
+    consoleSpy.mockRestore();
   });
 });

@@ -66,8 +66,11 @@ export function initFirebaseSync(onGroupsUpdated: (groups: Group[]) => void) {
         await saveLastSynced(mergedGroups);
 
         // 6. If there were newly created local groups, sync them to Firebase
+        // Fire-and-forget: errors are logged but don't block the sync flow
         if (newLocalGroups.length > 0) {
-          await syncToFirebase(mergedGroups);
+          syncToFirebase(mergedGroups).catch((error) => {
+            console.warn('Firebase sync failed (will retry on next sync):', error);
+          });
         }
 
         // Notify listeners
@@ -199,12 +202,15 @@ export const storage = {
 
   set: async (data: Partial<StorageSchema>): Promise<void> => {
     if (data.groups) {
-      // Save to local storage
+      // Save to local storage first (this is the primary operation)
       await saveToLocal(data.groups);
-      // Sync to Firebase if authenticated
-      await syncToFirebase(data.groups);
-      // Update Base state as we have successfully pushed our local state
+      // Update Base state - do this before Firebase sync so local state is consistent
       await saveLastSynced(data.groups);
+      // Sync to Firebase in background (fire-and-forget)
+      // Errors are logged but don't block local operations
+      syncToFirebase(data.groups).catch((error) => {
+        console.warn('Firebase sync failed (will retry on next sync):', error);
+      });
     }
   },
 
