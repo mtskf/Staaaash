@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Kbd } from '@/components/ui/kbd';
-import { AuthButton } from '@/components/AuthButton';
+import { AuthButton } from './AuthButton';
 import { storage } from '@/lib/storage';
 import type { Group } from '@/types';
 

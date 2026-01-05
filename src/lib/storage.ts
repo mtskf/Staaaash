@@ -5,7 +5,7 @@ import {
   saveGroupsToFirebase,
   subscribeToGroups
 } from './firebase';
-import { mergeGroups } from './sync-utils';
+import { mergeGroupsThreeWay } from './sync-utils';
 import { migrateAddUpdatedAt } from './migration';
 
 const IS_DEV = import.meta.env.DEV;
@@ -88,7 +88,7 @@ export function initFirebaseSync(onGroupsUpdated: (groups: Group[]) => void): ()
         const lastSyncedGroups = await getLastSynced();
 
         // 3. Perform 3-Way Merge
-        const { mergedGroups, newLocalGroups } = mergeGroups(localGroups, firebaseGroups, lastSyncedGroups);
+        const { mergedGroups, newLocalGroups } = mergeGroupsThreeWay(localGroups, firebaseGroups, lastSyncedGroups);
 
         // 4. Save merged result to local
         await saveToLocal(mergedGroups);

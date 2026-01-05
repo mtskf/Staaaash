@@ -14,7 +14,7 @@ export interface MergeResult {
  *    a. If it was present in Base (last sync) -> It meant it was deleted Remotely. Action: Delete Locally.
  *    b. If it was NOT in Base -> It means it is a New Local group. Action: Keep Locally & Push to Remote.
  */
-export function mergeGroups(
+export function mergeGroupsThreeWay(
   localGroups: Group[],
   remoteGroups: Group[],
   baseGroups: Group[]

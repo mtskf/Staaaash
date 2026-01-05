@@ -86,6 +86,18 @@ cd dist && zip -r ../release/staaaash-vX.X.X.zip .
 
 ---
 
+## 🔧 Tech Stack
+
+| Category | Technologies |
+|----------|-------------|
+| Core | TypeScript, React 19, Chrome Extension Manifest V3 |
+| Backend | Firebase Realtime Database (REST API), Google OAuth via `chrome.identity` |
+| UI | Tailwind CSS v3, shadcn/ui (Radix), lucide-react, sonner |
+| DnD | @dnd-kit/core, @dnd-kit/sortable |
+| Tooling | pnpm, Vite, ESLint, Vitest |
+
+---
+
 ## 📄 License
 
 MIT © [mtskf](https://github.com/mtskf)

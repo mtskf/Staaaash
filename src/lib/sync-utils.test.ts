@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mergeGroups } from './sync-utils';
+import { mergeGroupsThreeWay } from './sync-utils';
 import type { Group } from '@/types';
 
 // Helper to create mock groups
@@ -20,7 +20,7 @@ describe('mergeGroups (3-way merge)', () => {
     const local: Group[] = [];
     const base: Group[] = [];
 
-    const { mergedGroups, newLocalGroups } = mergeGroups(local, remote, base);
+    const { mergedGroups, newLocalGroups } = mergeGroupsThreeWay(local, remote, base);
 
     expect(mergedGroups).toEqual(remote);
     expect(newLocalGroups).toEqual([]);
@@ -33,7 +33,7 @@ describe('mergeGroups (3-way merge)', () => {
     // Base doesn't strictly matter for "existence" check, but let's say it existed
     const base = [createGroup('1')];
 
-    const { mergedGroups } = mergeGroups([group1_local], [group1_remote], base);
+    const { mergedGroups } = mergeGroupsThreeWay([group1_local], [group1_remote], base);
 
     expect(mergedGroups[0].title).toBe('Remote Title');
   });
@@ -46,7 +46,7 @@ describe('mergeGroups (3-way merge)', () => {
     const remote: Group[] = [];
     const base = [group1];
 
-    const { mergedGroups, newLocalGroups } = mergeGroups(local, remote, base);
+    const { mergedGroups, newLocalGroups } = mergeGroupsThreeWay(local, remote, base);
 
     // Should be deleted (not in mergedGroups)
     expect(mergedGroups).toEqual([]);
@@ -61,7 +61,7 @@ describe('mergeGroups (3-way merge)', () => {
     const remote = [group1];
     const base = [group1];
 
-    const { mergedGroups, newLocalGroups } = mergeGroups(local, remote, base);
+    const { mergedGroups, newLocalGroups } = mergeGroupsThreeWay(local, remote, base);
 
     // Should keep group2
     expect(mergedGroups).toHaveLength(2);
@@ -88,7 +88,7 @@ describe('mergeGroups (3-way merge)', () => {
     const remote = [g1, g4_new];
     const local = [g1, g2, g3, g4_old];
 
-    const { mergedGroups, newLocalGroups } = mergeGroups(local, remote, base);
+    const { mergedGroups, newLocalGroups } = mergeGroupsThreeWay(local, remote, base);
 
     const mergedIds = mergedGroups.map(g => g.id).sort();
     expect(mergedIds).toEqual(['1', '3', '4']);
@@ -110,7 +110,7 @@ describe('Last Write Wins (LWW) conflict resolution', () => {
     };
     const base = [createGroup('1')];
 
-    const { mergedGroups, newLocalGroups } = mergeGroups(
+    const { mergedGroups, newLocalGroups } = mergeGroupsThreeWay(
       [localGroup],
       [remoteGroup],
       base
@@ -132,7 +132,7 @@ describe('Last Write Wins (LWW) conflict resolution', () => {
     };
     const base = [createGroup('1')];
 
-    const { mergedGroups, newLocalGroups } = mergeGroups(
+    const { mergedGroups, newLocalGroups } = mergeGroupsThreeWay(
       [localGroup],
       [remoteGroup],
       base
@@ -154,7 +154,7 @@ describe('Last Write Wins (LWW) conflict resolution', () => {
     };
     const base = [createGroup('1')];
 
-    const { mergedGroups } = mergeGroups(
+    const { mergedGroups } = mergeGroupsThreeWay(
       [localGroup],
       [remoteGroup],
       base
@@ -176,7 +176,7 @@ describe('Last Write Wins (LWW) conflict resolution', () => {
     };
     const base = [createGroup('1')];
 
-    const { mergedGroups } = mergeGroups(
+    const { mergedGroups } = mergeGroupsThreeWay(
       [localGroup],
       [remoteGroup],
       base
@@ -200,7 +200,7 @@ describe('Last Write Wins (LWW) conflict resolution', () => {
       createGroup('2')
     ];
 
-    const { mergedGroups, newLocalGroups } = mergeGroups(local, remote, base);
+    const { mergedGroups, newLocalGroups } = mergeGroupsThreeWay(local, remote, base);
 
     expect(mergedGroups).toHaveLength(3);
     expect(mergedGroups.find(g => g.id === '1')?.title).toBe('Local Newer');
