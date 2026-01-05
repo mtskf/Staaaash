@@ -7,7 +7,6 @@
 ---
 
 ## Active
-- [ ] 🚨🔧 logic.ts整理: `mergeGroups`, `moveTabToGroup`, `reorderTabInGroup` がテストでのみ使用され、実際は `useDashboardDnD` でインライン実装。削除して `filterGroups` のみ残すか、DRY化する。 (`src/lib/logic.ts`, `src/hooks/useDashboardDnD.ts`)
 - [ ] 🚨🔧 mergeGroups命名: 関数が2箇所に異なる用途で存在し混乱を招く。命名を明確化する（`mergeGroupsThreeWay` 等）。 (`src/lib/sync-utils.ts`, `src/lib/migration.ts`)
 - [ ] 🚨🔧 GroupOps集約: DnD/Keyboardの操作ロジックを共通化し、重複実装を整理する。 (`src/hooks/useDashboardDnD.ts`, `src/hooks/useKeyboardNav.ts`)
 - [ ] 🚨🔧 Sync分割: `storage.ts` が複数の責務を持ち肥大化（306行）。同期ロジックを `sync-manager.ts` に分離し、ストレージ操作のみに限定する。 (`src/lib/storage.ts`)
@@ -28,6 +27,7 @@
 
 ## ✅ Done
 
+- [x] 🚨🔧 logic.ts整理: `mergeGroups`, `moveTabToGroup`, `reorderTabInGroup` を純粋関数として `logic.ts` に抽出し、`useDashboardDnD` からDRY化。テストも追加。 ✅
 - [x] 🚨🐛 `archiveTabs` が `await` 中に再実行されるとタブ保存と削除が競合し、データ重複やエラーが起きる。処理中の重複実行をロックする。 ✅
 - [x] 🚨🐛 `initFirebaseSync` の購読解除がなく、アンマウント後もポーリングが残る。クリーンアップ用の unsubscribe を `useGroups` から返して破棄する。 ✅
 - [x] 🚨🐛 既存グループのローカル変更が「Remote Wins」で上書きされる。LWW実装。 ✅ https://github.com/mtskf/Staaaash/pull/27

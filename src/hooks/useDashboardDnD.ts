@@ -12,6 +12,7 @@ import {
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import type { Group, TabItem } from '@/types';
+import { mergeGroups, reorderTabInGroup, moveTabToGroup } from '@/lib/logic';
 
 export function useDashboardDnD(
   groups: Group[],
@@ -74,22 +75,8 @@ export function useDashboardDnD(
         if (targetGroupId && active.id !== targetGroupId) {
             if (shiftPressedRef.current) {
                 // Merge Groups
-                const sourceGroup = groups.find(g => g.id === active.id);
-                const targetGroup = groups.find(g => g.id === targetGroupId);
-
-                if (sourceGroup && targetGroup) {
-                    // Merge and deduplicate by URL
-                    const seenUrls = new Set<string>();
-                    const mergedItems = [...targetGroup.items, ...sourceGroup.items].filter(tab => {
-                        if (seenUrls.has(tab.url)) return false;
-                        seenUrls.add(tab.url);
-                        return true;
-                    });
-
-                    const newGroups = groups
-                        .filter(g => g.id !== sourceGroup.id)
-                        .map(g => g.id === targetGroup.id ? { ...g, items: mergedItems } : g);
-
+                const newGroups = mergeGroups(groups, active.id as string, targetGroupId);
+                if (newGroups !== groups) {
                     await updateGroups(newGroups);
                 }
             } else if (overType === 'Group') {
@@ -134,21 +121,15 @@ export function useDashboardDnD(
                 : sourceGroup.items.findIndex((t: TabItem) => t.id === over.id);
 
             if (oldIndex !== newIndex && newIndex !== -1) {
-                const newItems = arrayMove(sourceGroup.items, oldIndex, newIndex);
-                const newGroups = groups.map(g =>
-                    g.id === sourceGroup.id ? { ...g, items: newItems } : g
-                );
+                const newGroups = reorderTabInGroup(groups, sourceGroup.id, oldIndex, newIndex);
                 await updateGroups(newGroups);
             }
         }
         // Case 2: Moving to different group
         else {
-             const tabToMove = sourceGroup.items.find((t: TabItem) => t.id === activeTabId)!;
-             // Remove from source
-             const sourceItems = sourceGroup.items.filter((t: TabItem) => t.id !== activeTabId);
+             let insertIndex: number | undefined;
+             let insertAtStart = false;
 
-             // Add to target
-             const targetItems = [...targetGroup.items];
              if (overType === 'Group') {
                  // Check visual order to decide insertion point
                  const pinnedGroups = groups.filter(g => g.pinned).sort((a, b) => a.order - b.order);
@@ -158,27 +139,21 @@ export function useDashboardDnD(
                  const sourceIndex = visualGroups.findIndex(g => g.id === sourceGroup.id);
                  const targetIndex = visualGroups.findIndex(g => g.id === targetGroup.id);
 
-                 if (targetIndex > sourceIndex) {
-                     // Moving DOWN to a group -> Insert at TOP
-                     targetItems.unshift(tabToMove);
-                 } else {
-                     // Moving UP to a group -> Insert at BOTTOM (default)
-                     targetItems.push(tabToMove);
-                 }
+                 // Moving DOWN to a group -> Insert at TOP
+                 insertAtStart = targetIndex > sourceIndex;
              } else {
-                 const insertIndex = targetItems.findIndex(t => t.id === over.id);
-                 if (insertIndex !== -1) {
-                     targetItems.splice(insertIndex, 0, tabToMove);
-                 } else {
-                     targetItems.push(tabToMove);
-                 }
+                 insertIndex = targetGroup.items.findIndex(t => t.id === over.id);
+                 if (insertIndex === -1) insertIndex = undefined;
              }
 
-             const newGroups = groups.map(g => {
-                 if (g.id === sourceGroup.id) return { ...g, items: sourceItems };
-                 if (g.id === targetGroup.id) return { ...g, items: targetItems };
-                 return g;
-             });
+             const newGroups = moveTabToGroup(
+                 groups,
+                 activeTabId as string,
+                 sourceGroup.id,
+                 targetGroup.id,
+                 insertIndex,
+                 insertAtStart
+             );
              await updateGroups(newGroups);
         }
     }
