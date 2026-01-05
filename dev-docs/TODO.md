@@ -1,5 +1,11 @@
 # TODO
 
+**Legend**:
+- **Priority**: 🚨 High | ⚠️ Medium | 💡 Low
+- **Type**: ✨ Feature | 🔧 Refactor | 🐛 Bug | ⚡ Performance | 📦 Infra
+
+---
+
 ## Active
 - [ ] 🚨🔧 logic.ts整理: `mergeGroups`, `moveTabToGroup`, `reorderTabInGroup` がテストでのみ使用され、実際は `useDashboardDnD` でインライン実装。削除して `filterGroups` のみ残すか、DRY化する。 (`src/lib/logic.ts`, `src/hooks/useDashboardDnD.ts`)
 - [ ] 🚨🔧 mergeGroups命名: 関数が2箇所に異なる用途で存在し混乱を招く。命名を明確化する（`mergeGroupsThreeWay` 等）。 (`src/lib/sync-utils.ts`, `src/lib/migration.ts`)
@@ -28,10 +34,3 @@
 - [x] 🚨🐛 `storage.set` が Firebase 失敗時に例外。Fire-and-forget化。 ✅ https://github.com/mtskf/Staaaash/pull/29
 - [x] 🚨🐛 ポーリングが未変更でも書き戻し。ハッシュ検出でスキップ。 ✅ https://github.com/mtskf/Staaaash/pull/30
 - [x] 🚨🔧 Storage統合: `background/storage.ts` が `lib/storage.ts` と重複している。background から lib/storage を直接使用し、重複ファイルを削除する。 (`src/background/storage.ts`, `src/background/index.ts`)
-
-
----
-
-**Legend**:
-- **Priority**: 🚨 High | ⚠️ Medium | 💡 Low
-- **Type**: ✨ Feature | 🔧 Refactor | 🐛 Bug | ⚡ Performance | 📦 Infra
