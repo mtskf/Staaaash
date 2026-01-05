@@ -36,7 +36,7 @@ export function mergeGroups(
     const sourceGroup = groups.find(g => g.id === sourceGroupId);
     const targetGroup = groups.find(g => g.id === targetGroupId);
 
-    if (!sourceGroup || !targetGroup) return groups;
+    if (!sourceGroup || !targetGroup || sourceGroupId === targetGroupId) return groups;
 
     const seenUrls = new Set<string>();
     const mergedItems: TabItem[] = [];
@@ -74,6 +74,9 @@ export function reorderTabInGroup(
     const group = groups.find(g => g.id === groupId);
     if (!group || oldIndex === newIndex) return groups;
 
+    const len = group.items.length;
+    if (oldIndex < 0 || oldIndex >= len || newIndex < 0 || newIndex >= len) return groups;
+
     const newItems = [...group.items];
     const [removed] = newItems.splice(oldIndex, 1);
     newItems.splice(newIndex, 0, removed);
@@ -95,7 +98,7 @@ export function moveTabToGroup(
     const sourceGroup = groups.find(g => g.id === sourceGroupId);
     const targetGroup = groups.find(g => g.id === targetGroupId);
 
-    if (!sourceGroup || !targetGroup) return groups;
+    if (!sourceGroup || !targetGroup || sourceGroupId === targetGroupId) return groups;
 
     const tab = sourceGroup.items.find(t => t.id === tabId);
     if (!tab) return groups;

@@ -117,6 +117,13 @@ describe('mergeGroups', () => {
         const result = mergeGroups(groups, mockGroup1.id, 'nonexistent');
         expect(result).toEqual(groups);
     });
+
+    it('returns unchanged groups if source and target are the same', () => {
+        const groups = [mockGroup1, mockGroup2];
+        const result = mergeGroups(groups, mockGroup1.id, mockGroup1.id);
+        expect(result).toEqual(groups);
+        expect(result).toHaveLength(2);
+    });
 });
 
 describe('reorderTabInGroup', () => {
@@ -164,6 +171,42 @@ describe('reorderTabInGroup', () => {
         const result = reorderTabInGroup(groups, 'g1', 0, 0);
 
         expect(result[0].items.map((t: TabItem) => t.id)).toEqual(['t1', 't2']);
+    });
+
+    it('returns unchanged groups if oldIndex is out of bounds', () => {
+        const group: Group = {
+            id: 'g1', title: 'Work', pinned: false, collapsed: false, order: 0, createdAt: 0, updatedAt: 0,
+            items: [mockTab1, mockTab2]
+        };
+        const groups = [group];
+
+        const result = reorderTabInGroup(groups, 'g1', 10, 0);
+
+        expect(result).toEqual(groups);
+    });
+
+    it('returns unchanged groups if newIndex is out of bounds', () => {
+        const group: Group = {
+            id: 'g1', title: 'Work', pinned: false, collapsed: false, order: 0, createdAt: 0, updatedAt: 0,
+            items: [mockTab1, mockTab2]
+        };
+        const groups = [group];
+
+        const result = reorderTabInGroup(groups, 'g1', 0, 10);
+
+        expect(result).toEqual(groups);
+    });
+
+    it('returns unchanged groups if indices are negative', () => {
+        const group: Group = {
+            id: 'g1', title: 'Work', pinned: false, collapsed: false, order: 0, createdAt: 0, updatedAt: 0,
+            items: [mockTab1, mockTab2]
+        };
+        const groups = [group];
+
+        const result = reorderTabInGroup(groups, 'g1', -1, 0);
+
+        expect(result).toEqual(groups);
     });
 });
 
@@ -233,5 +276,12 @@ describe('moveTabToGroup', () => {
         const groups = [mockGroup1, mockGroup2];
         const result = moveTabToGroup(groups, 't1', mockGroup1.id, 'nonexistent');
         expect(result).toEqual(groups);
+    });
+
+    it('returns unchanged groups if source and target are the same', () => {
+        const groups = [mockGroup1, mockGroup2];
+        const result = moveTabToGroup(groups, 't1', mockGroup1.id, mockGroup1.id);
+        expect(result).toEqual(groups);
+        expect(result.find((g: Group) => g.id === mockGroup1.id)?.items).toHaveLength(2);
     });
 });
