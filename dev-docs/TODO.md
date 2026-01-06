@@ -9,13 +9,13 @@
 
 ## Active
 
-- [ ] 💡🐛[S] `constants.ts` がモジュール読み込み時に `chrome.runtime` を参照し、テスト環境で例外になる可能性がある。遅延評価かガードを入れる。 (`src/constants.ts`)
 - [ ] 💡🔧[S] `initFirebaseSync` がシングルトンで、複数コンシューマーがマウントすると最初のunmountで全体のsyncが停止する。現在は `useGroups` のみが使用するため問題ないが、将来の拡張に備えてContext providerかref-countingパターンへのリファクタを検討する。 (`src/lib/storage.ts`)
 
 ---
 
 ## ✅ Done
 
+- [x] 💡🐛 `constants.ts`: `chrome.runtime` 参照にガードを追加し、テスト環境での例外を防止。テストも追加。 [PR #41](https://github.com/mtskf/Staaaash/pull/41)
 - [x] 💡✨ i18n対応基盤: `chrome.i18n` ラッパー作成、`messages.json` 導入、コンポーネントのハードコードテキスト置換。 [PR #39](https://github.com/mtskf/Staaaash/pull/39)
 - [x] ⚠️❓ migration.ts調査: `migrateToFirebase` は存在せず (`migrateAddUpdatedAt` が使用中)。対応不要。 [PR #38](https://github.com/mtskf/Staaaash/pull/38)
 - [x] ⚠️✨ useGroups: `chrome.storage.onChanged` でライブ更新を追加。 [PR #38](https://github.com/mtskf/Staaaash/pull/38)

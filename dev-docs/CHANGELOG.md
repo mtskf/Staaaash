@@ -31,3 +31,4 @@
 - Fixed `GroupCard` title potentially desyncing from external updates (e.g., Sync) while not editing ([PR #38](https://github.com/mtskf/Staaaash/pull/38)).
 - Fixed `updateGroupData` failure leaving local state inconsistent by adding auto-reload/rollback ([PR #38](https://github.com/mtskf/Staaaash/pull/38)).
 - Removed unreachable dead code in `useKeyboardNav` Enter key handler ([PR #38](https://github.com/mtskf/Staaaash/pull/38)).
+- Fixed `EXTENSION_PREFIX` in `constants.ts` throwing `ReferenceError` in test environments where `chrome.runtime` is unavailable ([PR #41](https://github.com/mtskf/Staaaash/pull/41)).
