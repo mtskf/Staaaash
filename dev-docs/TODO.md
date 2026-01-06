@@ -9,12 +9,22 @@
 
 ## Active
 
-- [ ] ⚠️✨[S] Empty state/セクション背景をブランドトーンに合わせて強調する。淡いグラデーション/パネル背景とアイコンイラストを追加し、Pinned/Collections も視覚階層を強める。 (`src/features/dashboard/Dashboard.tsx`, `index.css` など)
-- [ ] 💡✨[S] UX用アイコンアセットを追加し、Empty state やセクション見出しで利用できるようにする。 (`public/assets/` 追加、参照箇所は Dashboard 周辺)
-- [ ] 🎨✨[M] Visual Hierarchy強化: Pinnedセクションに特別な背景色/グラデーションを適用し、Collectionsとの区別を明確化。カードデザインをリッチにする（影、ボーダー、アイコン）。
-- [ ] 🧩✨[I] Atomic Design整理: `src/features/dashboard` 内のコンポーネントが肥大化しつつあるため、`src/components/domain` 等への分割を検討（まだ必須ではない）。
-- [ ] 🎨✨[S] Empty State改善: 親しみやすいイラスト/アイコンと、次のアクションを促すメッセージで空白時の体験を向上。
-- [ ] ♿️🔧[S] A11y向上: リスト構造 (`ul/li`) の適用、ドラッグ操作時の `aria-live` 通知の実装、フォーカス管理の堅牢化。
+### 🎨 UI/UX 改善
+
+- [ ] ⚠️✨[M] **Visual Hierarchy & Empty State 統合** (`Dashboard.tsx`, `index.css`, `public/assets/`)
+  - Pinned/Collections セクションに背景色・グラデーションで視覚階層を強化
+  - Empty State にイラスト/アイコン + 次アクション誘導メッセージ
+  - カードデザインをリッチ化 (影、ボーダー、アイコン)
+  - 前提: アイコンアセット追加 (`public/assets/`)
+
+- [ ] ♿️🔧[S] **A11y 向上** - ユーザビリティ基盤
+  - リスト構造 (`ul/li`) の適用
+  - ドラッグ操作時の `aria-live` 通知
+  - フォーカス管理の堅牢化
+
+### 🧩 アーキテクチャ (将来検討)
+
+- [ ] 💡✨[I] Atomic Design 整理: `src/features/dashboard` 肥大化時に `src/components/domain` へ分割検討
 
 ### 🤖 AI Agentic Workflow 改善 (現状スコア: 5.5/10 → 目標: 7.5/10)
 
