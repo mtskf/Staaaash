@@ -40,7 +40,8 @@ src/
 ├── background/      # Extension background service worker
 ├── components/ui/   # Generic UI components (shadcn/ui, sonner)
 ├── features/        # Feature-specific logic (Dashboard, etc.)
-├── lib/             # Utilities (storage, utils)
+├── hooks/           # Custom React hooks (useGroups, useDashboardDnD, useKeyboardNav)
+├── lib/             # Utilities (storage, sync, logic, firebase)
 ├── types/           # TypeScript definitions
 ├── App.tsx          # Main app entry
 ├── main.tsx         # React entry point
