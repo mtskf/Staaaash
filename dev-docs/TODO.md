@@ -8,12 +8,12 @@
 ---
 
 ## Active
-- [ ] 🚨🔧[M] GroupOps集約: `useKeyboardNav.ts` が独自のロジックで移動・並び替えを実装しており `logic.ts` を使用していない。`useDashboardDnD` と `useKeyboardNav` の操作ロジックを `logic.ts` の純粋関数に委譲して重複を解消する。（共通フック化は過度な抽象化と判断し行わない） (`src/hooks/useDashboardDnD.ts`, `src/hooks/useKeyboardNav.ts`)
+- [/] 🚨🔧[M] GroupOps集約: `useKeyboardNav.ts` が独自のロジックで移動・並び替えを実装しており `logic.ts` を使用していない。`useDashboardDnD` と `useKeyboardNav` の操作ロジックを `logic.ts` の純粋関数に委譲して重複を解消する。（共通フック化は過度な抽象化と判断し行わない） → `reorderGroup` 関数を追加し、`useKeyboardNav` をリファクタリング中 (`src/hooks/useDashboardDnD.ts`, `src/hooks/useKeyboardNav.ts`)
 - [ ] 🚨🔧[M] Sync分割: `storage.ts` がローカル・Firebase・同期・マージ・移行の全責務を持っGod Object化している。`SyncManager` クラス等に同期ロジックを分離し、`storage.ts` はインターフェース定義と単純な保存のみに留める。 (`src/lib/storage.ts`)
 - [ ] 🚨✅[M] Hooksテスト追加: `useGroups`, `useDashboardDnD`, `useKeyboardNav` のテストが存在しない（`Dashboard.test.tsx` は初期表示のみを確認）。複雑な状態遷移を持つため、これらのカスタムフックに対するユニットテスト/統合テストを追加する。
-- [ ] 🚨🔧[S] mergeGroups命名: 関数が `sync-utils.ts` (`mergeGroupsThreeWay`) と `logic.ts` (`mergeGroups`) で名前が似ているが動作が異なる（3-way merge vs 2-group merge）。`mergeGroupsIntoTarget` 等にリネームして区別する。 (`src/lib/sync-utils.ts`, `src/lib/logic.ts`)
+- [x] 🚨🔧[S] mergeGroups命名: 関数が `sync-utils.ts` (`mergeGroupsThreeWay`) と `logic.ts` (`mergeGroups`) で名前が似ているが動作が異なる（3-way merge vs 2-group merge）。`mergeGroupsIntoTarget` にリネーム完了。 ✅ https://github.com/mtskf/Staaaash/pull/34 (`src/lib/logic.ts`)
 - [ ] ⚠️❓[S] `src/lib/migration.ts` の `migrateToFirebase` が未使用。完了しているなら削除、必要なら認証フローに組み込む。 (`src/lib/migration.ts`)
-- [ ] ⚠️🔧[S] キーボード並び替えで `order` が更新されず、再読み込みで並びが戻る可能性。並べ替え時に `order` を正規化して保存するロジックを確認/修正。 (`src/hooks/useKeyboardNav.ts`)
+- [x] ⚠️🔧[S] キーボード並び替えで `order` が更新されず、再読み込みで並びが戻る可能性。`reorderGroup` に order 正規化を追加して修正。 ✅ (`src/lib/logic.ts`)
 - [ ] ⚠️✨[S] 背景スクリプトで追加されたグループが、開いているダッシュボードに即時反映されない。`chrome.storage.onChanged` でローカル更新を監視する。 (`src/hooks/useGroups.ts`)
 - [ ] ⚠️🔧[S] `GroupCard` の `newTitle` が外部更新と同期されず、同期更新後の編集で古いタイトルが出る。`group.title` 変更時に state を更新する。 (`src/features/dashboard/GroupCard.tsx`)
 - [ ] 💡🔧[S] `Enter` キー処理に到達不能な分岐があるため整理する。 (`src/hooks/useKeyboardNav.ts`)

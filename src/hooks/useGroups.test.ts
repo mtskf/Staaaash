@@ -62,6 +62,21 @@ describe('useGroups', () => {
     expect(initFirebaseSync).toHaveBeenCalledTimes(1);
   });
 
+  it('loads groups with pinned-first sorting', async () => {
+    const pinnedGroup: Group = { ...baseGroup, id: 'g-pinned', pinned: true, order: 5 };
+    const unpinnedGroup: Group = { ...secondGroup, id: 'g-unpinned', pinned: false, order: 1 };
+    vi.mocked(storage.get).mockResolvedValue({ groups: [unpinnedGroup, pinnedGroup] });
+
+    const { result } = renderHook(() => useGroups());
+
+    await waitFor(() => {
+      expect(result.current.groups).toHaveLength(2);
+    });
+
+    // Pinned should come first despite higher order value
+    expect(result.current.groups.map((group) => group.id)).toEqual(['g-pinned', 'g-unpinned']);
+  });
+
   it('selects previous item when a group is removed', async () => {
     const { result } = renderHook(() => useGroups());
 
@@ -96,5 +111,48 @@ describe('useGroups', () => {
 
     const updatedGroup = result.current.groups.find((group) => group.id === 'g1');
     expect(updatedGroup?.items.map((tab) => tab.id)).toEqual(['t2']);
+  });
+
+  it('maintains pinned-first order after updateGroups (D&D scenario)', async () => {
+    const pinnedGroup: Group = { ...baseGroup, id: 'pinned', pinned: true, order: 0 };
+    const unpinnedGroup: Group = { ...secondGroup, id: 'unpinned', pinned: false, order: 1 };
+    vi.mocked(storage.get).mockResolvedValue({ groups: [pinnedGroup, unpinnedGroup] });
+
+    const { result } = renderHook(() => useGroups());
+
+    await waitFor(() => {
+      expect(result.current.groups).toHaveLength(2);
+    });
+
+    // Simulate D&D reorder that puts unpinned first (bad order from caller)
+    const reorderedBadly = [unpinnedGroup, pinnedGroup];
+
+    await act(async () => {
+      await result.current.updateGroups(reorderedBadly);
+    });
+
+    // Should still be pinned-first in state
+    expect(result.current.groups.map((g) => g.id)).toEqual(['pinned', 'unpinned']);
+  });
+
+  it('re-sorts after updateGroupData pin toggle', async () => {
+    const unpinned1: Group = { ...baseGroup, id: 'u1', pinned: false, order: 0 };
+    const unpinned2: Group = { ...secondGroup, id: 'u2', pinned: false, order: 1 };
+    vi.mocked(storage.get).mockResolvedValue({ groups: [unpinned1, unpinned2] });
+
+    const { result } = renderHook(() => useGroups());
+
+    await waitFor(() => {
+      expect(result.current.groups).toHaveLength(2);
+    });
+
+    // Pin the second group
+    await act(async () => {
+      await result.current.updateGroupData('u2', { pinned: true });
+    });
+
+    // u2 should now be first (pinned)
+    expect(result.current.groups[0].id).toBe('u2');
+    expect(result.current.groups[0].pinned).toBe(true);
   });
 });

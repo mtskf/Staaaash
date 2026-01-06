@@ -121,3 +121,44 @@ export function moveTabToGroup(
         return g;
     });
 }
+
+/**
+ * Reorder a group within its section (pinned/unpinned).
+ * Groups cannot cross the pinned/unpinned boundary.
+ * Assumes input array is "Pinned First" (pinned groups at the start).
+ * Updates order field to persist the new ordering.
+ */
+export function reorderGroup(
+    groups: Group[],
+    groupId: string,
+    direction: 'up' | 'down'
+): Group[] {
+    const index = groups.findIndex(g => g.id === groupId);
+    if (index === -1) return groups;
+
+    const group = groups[index];
+    const isPinned = group.pinned;
+
+    // Find section boundaries
+    const firstUnpinnedIndex = groups.findIndex(g => !g.pinned);
+    const pinnedEnd = firstUnpinnedIndex === -1 ? groups.length : firstUnpinnedIndex;
+
+    // Calculate target index
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+
+    // Boundary checks
+    if (isPinned) {
+        // Pinned group: can only move within pinned section [0, pinnedEnd)
+        if (targetIndex < 0 || targetIndex >= pinnedEnd) return groups;
+    } else {
+        // Unpinned group: can only move within unpinned section [pinnedEnd, groups.length)
+        if (targetIndex < pinnedEnd || targetIndex >= groups.length) return groups;
+    }
+
+    // Swap groups and renormalize order field
+    const newGroups = [...groups];
+    [newGroups[index], newGroups[targetIndex]] = [newGroups[targetIndex], newGroups[index]];
+
+    // Update order field based on new array positions
+    return newGroups.map((g, i) => ({ ...g, order: i }));
+}
