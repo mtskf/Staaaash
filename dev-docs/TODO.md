@@ -8,12 +8,7 @@
 ---
 
 ## Active
-- [ ] ⚠️❓[S] `src/lib/migration.ts` の `migrateToFirebase` が未使用。完了しているなら削除、必要なら認証フローに組み込む。 (`src/lib/migration.ts`)
-- [ ] ⚠️✨[S] 背景スクリプトで追加されたグループが、開いているダッシュボードに即時反映されない。`chrome.storage.onChanged` でローカル更新を監視する。 (`src/hooks/useGroups.ts`)
-- [ ] ⚠️🔧[S] `GroupCard` の `newTitle` が外部更新と同期されず、同期更新後の編集で古いタイトルが出る。`group.title` 変更時に state を更新する。 (`src/features/dashboard/GroupCard.tsx`)
-- [ ] 💡🔧[S] `Enter` キー処理に到達不能な分岐があるため整理する。 (`src/hooks/useKeyboardNav.ts`)
-- [ ] 💡[S] `updateGroupData` の失敗時に状態がローカルと不整合のままになる。失敗時のリロード/ロールバックを追加する。 (`src/hooks/useGroups.ts`)
-- [ ] 💡✨[S] `GroupCard` や `TabCard` のアイコンボタンに `aria-label` がなく、アクセシビリティが不十分。適切なラベルを付与する。 (`src/features/dashboard/GroupCard.tsx`, `src/features/dashboard/TabCard.tsx`)
+- [ ] 💡🔧[S] `Enter` キー処理に到達不能な分岐があるため整理する。 (`src/hooks/useKeyboardNav.ts`) → PR #38 で対応済み、マージ待ち
 - [ ] 💡✨[M] UIのテキスト(Archive, Delete等)がハードコードされている。i18n対応の準備として定数化または `chrome.i18n` 化を検討する。 (`src/constants.ts`, components)
 - [ ] 💡🐛[S] `constants.ts` がモジュール読み込み時に `chrome.runtime` を参照し、テスト環境で例外になる可能性がある。遅延評価かガードを入れる。 (`src/constants.ts`)
 - [ ] 💡🔧[S] `initFirebaseSync` がシングルトンで、複数コンシューマーがマウントすると最初のunmountで全体のsyncが停止する。現在は `useGroups` のみが使用するため問題ないが、将来の拡張に備えてContext providerかref-countingパターンへのリファクタを検討する。 (`src/lib/storage.ts`)
@@ -22,6 +17,12 @@
 
 ## ✅ Done
 
+- [x] ⚠️❓ migration.ts調査: `migrateToFirebase` は存在せず (`migrateAddUpdatedAt` が使用中)。対応不要。 [PR #38](https://github.com/mtskf/Staaaash/pull/38)
+- [x] ⚠️✨ useGroups: `chrome.storage.onChanged` でライブ更新を追加。 [PR #38](https://github.com/mtskf/Staaaash/pull/38)
+- [x] ⚠️🔧 GroupCard: `newTitle` を外部更新と同期。 [PR #38](https://github.com/mtskf/Staaaash/pull/38)
+- [x] 💡🐛 useGroups: `updateGroupData` 失敗時にストレージからリロードして整合性を復元。 [PR #38](https://github.com/mtskf/Staaaash/pull/38)
+- [x] 💡✨ GroupCard/TabCard: 6つのアイコンボタンに `aria-label` を追加。 [PR #38](https://github.com/mtskf/Staaaash/pull/38)
+- [x] 💡🔧 useKeyboardNav: 到達不能な Enter 分岐 (6行) を削除。 [PR #38](https://github.com/mtskf/Staaaash/pull/38)
 - [x] 🚨🔧 Hooksテスト追加: `useDashboardDnD.test.ts` (5 tests), `useKeyboardNav.test.ts` (6 tests) を追加。fake timers でテスト高速化。 ✅ [PR #37](https://github.com/mtskf/Staaaash/pull/37)
 - [x] 🚨🔧 Sync分割: `sync.ts` モジュールを追加。retry with exponential backoff, race condition handling (syncId), auth state change protection。 ✅ [PR #36](https://github.com/mtskf/Staaaash/pull/36)
 - [x] 🚨🔧 GroupOps集約: `reorderGroup` を `logic.ts` に追加し、`useKeyboardNav` をリファクタリング。pinned-first invariant を `useGroups` で保証。 ✅ [PR #35](https://github.com/mtskf/Staaaash/pull/35)

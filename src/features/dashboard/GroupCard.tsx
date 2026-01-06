@@ -70,6 +70,13 @@ export function GroupCard({
     }
   }, [isRenaming, group.id]);
 
+  // Sync newTitle when group.title changes externally (e.g., via Firebase sync)
+  React.useEffect(() => {
+    if (!isEditing) {
+      setNewTitle(group.title);
+    }
+  }, [group.title, isEditing]);
+
   const {
     attributes,
     listeners,
@@ -120,6 +127,7 @@ export function GroupCard({
               size="icon"
               className="h-6 w-6 shrink-0"
               onClick={() => onUpdateGroup(group.id, { collapsed: !group.collapsed })}
+              aria-label={group.collapsed ? "Expand group" : "Collapse group"}
             >
               {group.collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
@@ -172,6 +180,7 @@ export function GroupCard({
                 size="icon"
                 className="h-7 w-7 text-muted-foreground hover:text-foreground"
                 onClick={() => onRestore(group.id)}
+                aria-label="Restore all tabs"
               >
                 <ArrowUpRight className="h-3.5 w-3.5" />
               </Button>
@@ -182,6 +191,7 @@ export function GroupCard({
                 size="icon"
                 className={cn("h-7 w-7", group.pinned ? "text-yellow-500" : "text-muted-foreground")}
                 onClick={() => onUpdateGroup(group.id, { pinned: !group.pinned })}
+                aria-label={group.pinned ? "Unpin group" : "Pin group"}
               >
                 {group.pinned ? <Pin className="h-3.5 w-3.5 fill-current" /> : <Pin className="h-3.5 w-3.5" />}
               </Button>
@@ -192,6 +202,7 @@ export function GroupCard({
                 size="icon"
                 className="h-7 w-7 text-red-500 hover:text-red-600"
                 onClick={() => onRemoveGroup(group.id)}
+                aria-label="Delete group"
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
