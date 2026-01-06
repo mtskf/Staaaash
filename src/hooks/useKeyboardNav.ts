@@ -237,12 +237,6 @@ export function useKeyboardNav({
                    setRenamingGroupId(item.id);
                }
             }
-          } else {
-             // Handle Renaming (Enter without modifiers)
-             if (currentIndex !== -1 && items[currentIndex].type === 'group') {
-                e.preventDefault();
-                setRenamingGroupId(items[currentIndex].id);
-             }
           }
           break;
         }

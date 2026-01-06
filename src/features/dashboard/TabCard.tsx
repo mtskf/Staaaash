@@ -47,6 +47,7 @@ export const TabCard = forwardRef<HTMLDivElement, TabCardProps & React.HTMLAttri
                 onRestore(tab.id);
               }}
               onPointerDown={(e: React.PointerEvent) => e.stopPropagation()}
+              aria-label="Restore tab"
             >
               <ArrowUpRight className="h-3.5 w-3.5" />
             </Button>
@@ -59,6 +60,7 @@ export const TabCard = forwardRef<HTMLDivElement, TabCardProps & React.HTMLAttri
                 onRemove(tab.id);
               }}
               onPointerDown={(e: React.PointerEvent) => e.stopPropagation()}
+              aria-label="Remove tab"
             >
               <X className="h-3 w-3" />
             </Button>

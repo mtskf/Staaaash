@@ -33,8 +33,27 @@ export function useGroups() {
       setGroups(sortPinnedFirst([...syncedGroups]));
     });
 
+    // Listen for local storage changes (e.g., from background script archiving)
+    const handleStorageChange = (
+      changes: { [key: string]: chrome.storage.StorageChange },
+      areaName: string
+    ) => {
+      if (areaName === 'local' && changes['staaaash_groups']?.newValue) {
+        const newGroups = changes['staaaash_groups'].newValue;
+        if (Array.isArray(newGroups)) {
+          setGroups(sortPinnedFirst(newGroups as Group[]));
+        }
+      }
+    };
+    chrome.storage?.onChanged?.addListener(handleStorageChange);
+
     // Cleanup on unmount
-    return unsubscribe;
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+      chrome.storage?.onChanged?.removeListener(handleStorageChange);
+    };
   }, []);
 
   const updateGroups = useCallback(async (newGroups: Group[]) => {
@@ -62,7 +81,9 @@ export function useGroups() {
       await storage.updateGroups(newGroups);
     } catch {
       toast.error("Failed to save changes.");
-      // In a real app we might revert here too
+      // Reload from storage to restore consistency
+      const storedData = await storage.get();
+      setGroups(sortPinnedFirst(storedData.groups));
     }
   }, [groups]);
 
