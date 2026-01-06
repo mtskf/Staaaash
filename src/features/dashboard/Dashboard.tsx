@@ -199,6 +199,7 @@ export function Dashboard() {
                                     isRenaming={renamingGroupId === group.id}
                                     onRenameStop={() => {
                                         setRenamingGroupId(null);
+                                        setSelectedId(group.id);
                                         if (autoFocusGroupId === group.id) {
                                             setAutoFocusGroupId(null);
                                         }
@@ -238,6 +239,7 @@ export function Dashboard() {
                                 isRenaming={renamingGroupId === group.id}
                                 onRenameStop={() => {
                                     setRenamingGroupId(null);
+                                    setSelectedId(group.id);
                                     if (autoFocusGroupId === group.id) {
                                         setAutoFocusGroupId(null);
                                     }
