@@ -247,8 +247,10 @@ function setUpdatedTimestamp(oldGroups: Group[], newGroups: Group[]): Group[] {
     }
 
     // Deep comparison excluding updatedAt
-    const { updatedAt: _oldUpdated, ...oldWithoutTimestamp } = oldGroup;
-    const { updatedAt: _newUpdated, ...newWithoutTimestamp } = newGroup;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { updatedAt: _oldTs, ...oldWithoutTimestamp } = oldGroup;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { updatedAt: _newTs, ...newWithoutTimestamp } = newGroup;
     const hasChanged = JSON.stringify(oldWithoutTimestamp) !== JSON.stringify(newWithoutTimestamp);
 
     if (hasChanged) {
