@@ -26,6 +26,7 @@ describe('sync module', () => {
   let mockUnsubscribe: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
+    vi.useFakeTimers();
     vi.clearAllMocks();
     mockUnsubscribe = vi.fn();
     vi.mocked(firebase.subscribeToGroups).mockReturnValue(mockUnsubscribe);
@@ -38,6 +39,7 @@ describe('sync module', () => {
 
   afterEach(() => {
     stopSync();
+    vi.useRealTimers();
   });
 
   it('performs initial fetch with retries on startSync', async () => {
@@ -50,12 +52,12 @@ describe('sync module', () => {
     const onGroupsUpdated = vi.fn();
     startSync(onGroupsUpdated);
 
-    // Wait for retries (1s + 2s = 3s max, but we use fake timers)
-    await vi.waitFor(() => {
-      expect(onGroupsUpdated).toHaveBeenCalledWith([mockGroup]);
-    }, { timeout: 10000 });
+    // Advance timers for retry delays (1s + 2s)
+    await vi.advanceTimersByTimeAsync(1000); // First retry delay
+    await vi.advanceTimersByTimeAsync(2000); // Second retry delay
 
     expect(firebase.getGroupsFromFirebase).toHaveBeenCalledTimes(3);
+    expect(onGroupsUpdated).toHaveBeenCalledWith([mockGroup]);
   });
 
   it('starts polling after initial fetch', async () => {
@@ -64,9 +66,10 @@ describe('sync module', () => {
     const onGroupsUpdated = vi.fn();
     startSync(onGroupsUpdated);
 
-    await vi.waitFor(() => {
-      expect(firebase.subscribeToGroups).toHaveBeenCalled();
-    });
+    // Allow async operations to complete
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(firebase.subscribeToGroups).toHaveBeenCalled();
   });
 
   it('starts polling even after initial fetch fails', async () => {
@@ -76,12 +79,12 @@ describe('sync module', () => {
     const onGroupsUpdated = vi.fn();
     startSync(onGroupsUpdated);
 
-    // Wait for all retries to complete
-    await vi.waitFor(() => {
-      expect(firebase.subscribeToGroups).toHaveBeenCalled();
-    }, { timeout: 10000 });
+    // Advance through all retry delays (1s + 2s + 4s)
+    await vi.advanceTimersByTimeAsync(1000);
+    await vi.advanceTimersByTimeAsync(2000);
+    await vi.advanceTimersByTimeAsync(4000);
 
-    // onGroupsUpdated should NOT have been called with initial data
+    expect(firebase.subscribeToGroups).toHaveBeenCalled();
     expect(onGroupsUpdated).not.toHaveBeenCalled();
   });
 
@@ -91,10 +94,12 @@ describe('sync module', () => {
     const onGroupsUpdated = vi.fn();
     startSync(onGroupsUpdated);
 
-    await vi.waitFor(() => {
-      expect(firebase.getGroupsFromFirebase).toHaveBeenCalledTimes(3);
-    }, { timeout: 10000 });
+    // Advance through all retry delays
+    await vi.advanceTimersByTimeAsync(1000);
+    await vi.advanceTimersByTimeAsync(2000);
+    await vi.advanceTimersByTimeAsync(4000);
 
+    expect(firebase.getGroupsFromFirebase).toHaveBeenCalledTimes(3);
     expect(onGroupsUpdated).not.toHaveBeenCalled();
   });
 
@@ -104,9 +109,8 @@ describe('sync module', () => {
     const onGroupsUpdated = vi.fn();
     startSync(onGroupsUpdated);
 
-    await vi.waitFor(() => {
-      expect(firebase.subscribeToGroups).toHaveBeenCalled();
-    });
+    // Allow async operations to complete
+    await vi.advanceTimersByTimeAsync(0);
 
     stopSync();
 
@@ -117,7 +121,7 @@ describe('sync module', () => {
     const firstGroups = [{ ...mockGroup, id: 'first' }];
     const secondGroups = [{ ...mockGroup, id: 'second' }];
 
-    // First call takes longer
+    // First call takes longer (100ms delay)
     vi.mocked(firebase.getGroupsFromFirebase)
       .mockImplementationOnce(() => new Promise(resolve => setTimeout(() => resolve(firstGroups), 100)))
       .mockResolvedValueOnce(secondGroups);
@@ -129,9 +133,8 @@ describe('sync module', () => {
     // Immediately start second sync (should cancel first)
     startSync(onGroupsUpdated);
 
-    await vi.waitFor(() => {
-      expect(onGroupsUpdated).toHaveBeenCalled();
-    });
+    // Advance past both timeouts
+    await vi.advanceTimersByTimeAsync(100);
 
     // Should only receive second result, not first (stale)
     expect(onGroupsUpdated).toHaveBeenCalledWith(secondGroups);

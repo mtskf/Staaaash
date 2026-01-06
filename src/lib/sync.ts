@@ -65,7 +65,8 @@ let currentCallback: ((groups: Group[]) => void) | null = null;
  * @returns Cleanup function
  */
 export function startSync(onGroupsUpdated: (groups: Group[]) => void): () => void {
-  const currentSyncId = ++syncId;
+  // Increment syncId to invalidate any previous in-flight requests
+  syncId++;
 
   // Clean up existing subscriptions
   if (pollingUnsubscribe) {
@@ -79,11 +80,11 @@ export function startSync(onGroupsUpdated: (groups: Group[]) => void): () => voi
 
   currentCallback = onGroupsUpdated;
 
-  const performSync = async (userId: string) => {
+  const performSyncWithId = async (userId: string, activeSyncId: number) => {
     // Phase 1: Initial fetch with retry
     const groups = await retryFetch(() => getGroupsFromFirebase(userId));
 
-    if (currentSyncId !== syncId) {
+    if (activeSyncId !== syncId) {
       console.log('Stale sync result discarded');
       return;
     }
@@ -94,19 +95,24 @@ export function startSync(onGroupsUpdated: (groups: Group[]) => void): () => voi
 
     // Phase 2: Start polling (even if initial fetch failed)
     pollingUnsubscribe = subscribeToGroups(userId, (polledGroups) => {
-      if (currentSyncId !== syncId) return;
+      if (activeSyncId !== syncId) return;
       currentCallback?.(polledGroups);
     });
   };
 
   authUnsubscribe = onAuthStateChanged((user: User | null) => {
+    // Increment syncId to invalidate any in-flight requests from previous user
+    // This prevents stale results from leaking after sign-out or account switch
+    const authChangeSyncId = ++syncId;
+
     if (pollingUnsubscribe) {
       pollingUnsubscribe();
       pollingUnsubscribe = null;
     }
 
     if (user) {
-      performSync(user.uid);
+      // Pass the new syncId to performSync to ensure proper invalidation
+      performSyncWithId(user.uid, authChangeSyncId);
     }
   });
 
