@@ -9,7 +9,6 @@
 
 ## Active
 
-- [ ] 💡✨[M] UIのテキスト(Archive, Delete等)がハードコードされている。i18n対応の準備として定数化または `chrome.i18n` 化を検討する。 (`src/constants.ts`, components)
 - [ ] 💡🐛[S] `constants.ts` がモジュール読み込み時に `chrome.runtime` を参照し、テスト環境で例外になる可能性がある。遅延評価かガードを入れる。 (`src/constants.ts`)
 - [ ] 💡🔧[S] `initFirebaseSync` がシングルトンで、複数コンシューマーがマウントすると最初のunmountで全体のsyncが停止する。現在は `useGroups` のみが使用するため問題ないが、将来の拡張に備えてContext providerかref-countingパターンへのリファクタを検討する。 (`src/lib/storage.ts`)
 
@@ -17,6 +16,7 @@
 
 ## ✅ Done
 
+- [x] 💡✨ i18n対応基盤: `chrome.i18n` ラッパー作成、`messages.json` 導入、コンポーネントのハードコードテキスト置換。 [PR #39](https://github.com/mtskf/Staaaash/pull/39)
 - [x] ⚠️❓ migration.ts調査: `migrateToFirebase` は存在せず (`migrateAddUpdatedAt` が使用中)。対応不要。 [PR #38](https://github.com/mtskf/Staaaash/pull/38)
 - [x] ⚠️✨ useGroups: `chrome.storage.onChanged` でライブ更新を追加。 [PR #38](https://github.com/mtskf/Staaaash/pull/38)
 - [x] ⚠️🔧 GroupCard: `newTitle` を外部更新と同期。 [PR #38](https://github.com/mtskf/Staaaash/pull/38)

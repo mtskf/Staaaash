@@ -14,6 +14,7 @@ import { createPortal } from 'react-dom';
 import { Pin, FolderOpen } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { t } from '@/lib/i18n';
 import { GroupCard } from './GroupCard';
 import { TabCard } from './TabCard';
 import type { Group, TabItem } from '@/types';
@@ -133,7 +134,7 @@ export function Dashboard() {
       <AlertDialog open={!!groupToDelete} onOpenChange={(open) => !open && setGroupToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete group?</AlertDialogTitle>
+            <AlertDialogTitle>{t('group_delete')}</AlertDialogTitle>
             <AlertDialogDescription>
               This will permanently delete "{groupToDelete?.title}" and its {groupToDelete?.items.length} tab(s).
               This action cannot be undone.
