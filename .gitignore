@@ -122,3 +122,4 @@ dist
 # Extension packaging
 *.pem
 *.crx
+package-lock.json
