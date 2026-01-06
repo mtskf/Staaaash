@@ -9,12 +9,17 @@
 
 ## Active
 
-(なし)
+- [ ] 💡🐛[S] GroupCard.tsx:50,64 - setTimeout にcleanup関数がない（メモリリーク）
+- [ ] 💡🔧[M] テストの `any` 型を適切な型に置換
+  - `storage.test.ts:25,55,126` / `setup.ts:21`
+- [ ] ⚠️✨[S] Empty state/セクション背景をブランドトーンに合わせて強調する。淡いグラデーション/パネル背景とアイコンイラストを追加し、Pinned/Collections も視覚階層を強める。 (`src/features/dashboard/Dashboard.tsx`, `index.css` など)
+- [ ] 💡✨[S] UX用アイコンアセットを追加し、Empty state やセクション見出しで利用できるようにする。 (`public/assets/` 追加、参照箇所は Dashboard 周辺)
 
 ---
 
 ## ✅ Done
 
+- [x] 🚨🔧[S] ESLint修正: Fast Refresh違反、空interface、useEffect内setState、未使用変数を修正。badge/button/input/kbd/Dashboard/storage 各ファイル。
 - [x] 💡🔧[M] テストカバレッジ拡充: `useAuth.ts` (8 tests), `GroupCard.tsx` (15 tests), `firebase.ts` (5 tests) を追加。合計28テスト追加で108テストに。
 - [x] 💡✨ UI文言 i18n 完了: 残りのハードコード文言を `messages.json` に追加し `t()` で参照。Dashboard, DashboardHeader, GroupCard を更新。
 - [x] ⚠️🔧 `initFirebaseSync` ref-counting テスト追加: 複数サブスクライバの追加/削除で start/stop が正しく呼ばれることを検証。 [PR #42](https://github.com/mtskf/Staaaash/pull/42)

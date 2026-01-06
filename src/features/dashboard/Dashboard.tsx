@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useEffect } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import {
   DndContext,
   DragOverlay,
@@ -37,7 +37,16 @@ import { DashboardHeader } from './DashboardHeader';
 
 export function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [autoFocusGroupId, setAutoFocusGroupId] = useState<string | null>(null);
+  const [autoFocusGroupId, setAutoFocusGroupId] = useState<string | null>(() => {
+    const params = new URLSearchParams(window.location.search);
+    const newGroupId = params.get('newGroupId');
+    if (newGroupId) {
+      // Clear query param to prevent re-focus on refresh
+      window.history.replaceState({}, '', 'index.html');
+      return newGroupId;
+    }
+    return null;
+  });
   const [groupToDelete, setGroupToDelete] = useState<Group | null>(null);
   const [renamingGroupId, setRenamingGroupId] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -81,15 +90,6 @@ export function Dashboard() {
       handleDragEnd
   } = useDashboardDnD(groups, updateGroups, shiftPressedRef);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const newGroupId = params.get('newGroupId');
-    if (newGroupId) {
-       // Clear query param to prevent re-focus on refresh
-       window.history.replaceState({}, '', 'index.html');
-       setAutoFocusGroupId(newGroupId);
-    }
-  }, []);
 
   const pinnedGroups = useMemo(() =>
     filterGroups(groups.filter(g => g.pinned), searchQuery),
