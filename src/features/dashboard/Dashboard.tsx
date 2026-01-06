@@ -109,7 +109,7 @@ export function Dashboard() {
     if (!groupToDelete) return;
     await removeGroup(groupToDelete.id);
     setGroupToDelete(null);
-    toast.success('Group deleted.');
+    toast.success(t('group_deleted'));
   };
 
   const dropAnimation: DropAnimation = {
@@ -136,18 +136,17 @@ export function Dashboard() {
           <AlertDialogHeader>
             <AlertDialogTitle>{t('group_delete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete "{groupToDelete?.title}" and its {groupToDelete?.items.length} tab(s).
-              This action cannot be undone.
+              {t('delete_group_confirm', [groupToDelete?.title ?? '', String(groupToDelete?.items.length ?? 0)])}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction
                 onClick={handleConfirmDelete}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 autoFocus // Focus delete button by default
             >
-              Delete
+              {t('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -159,9 +158,9 @@ export function Dashboard() {
            <div className="bg-muted/30 p-4 rounded-full mb-4">
              <FolderOpen className="h-10 w-10 text-muted-foreground/40" />
            </div>
-           <h3 className="text-lg font-semibold text-foreground">No saved tabs yet</h3>
+           <h3 className="text-lg font-semibold text-foreground">{t('no_saved_tabs')}</h3>
            <p className="text-sm text-muted-foreground mt-2 max-w-[300px] leading-relaxed">
-             Click the extension icon in your browser toolbar to stash your open tabs into a new group.
+             {t('empty_state_description')}
            </p>
         </div>
       )}
@@ -178,7 +177,7 @@ export function Dashboard() {
             {pinnedGroups.length > 0 && (
                 <section className="max-w-3xl mx-auto w-full">
                     <h2 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-                        <Pin className="h-4 w-4" />Pinned
+                        <Pin className="h-4 w-4" />{t('section_pinned')}
                     </h2>
                     <SortableContext
                         items={pinnedGroups.map(g => g.id)}
@@ -216,7 +215,7 @@ export function Dashboard() {
              <section className="max-w-3xl mx-auto w-full">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                        <FolderOpen className="h-4 w-4" />Collections
+                        <FolderOpen className="h-4 w-4" />{t('section_collections')}
                     </h2>
                 </div>
                  <SortableContext
