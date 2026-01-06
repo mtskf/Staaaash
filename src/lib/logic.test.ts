@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filterGroups, mergeGroups, reorderTabInGroup, moveTabToGroup } from './logic';
+import { filterGroups, mergeGroupsIntoTarget, reorderTabInGroup, moveTabToGroup } from './logic';
 import type { Group, TabItem } from '@/types';
 
 const mockTab1: TabItem = { id: 't1', title: 'Google', url: 'https://google.com' };
@@ -44,7 +44,7 @@ describe('filterGroups', () => {
     });
 });
 
-describe('mergeGroups', () => {
+describe('mergeGroupsIntoTarget', () => {
     const mockTab4: TabItem = { id: 't4', title: 'Reddit', url: 'https://reddit.com' };
 
     it('merges source group items into target group', () => {
@@ -58,7 +58,7 @@ describe('mergeGroups', () => {
         };
         const groups = [targetGroup, sourceGroup];
 
-        const result = mergeGroups(groups, 'source', 'target');
+        const result = mergeGroupsIntoTarget(groups, 'source', 'target');
 
         expect(result).toHaveLength(1);
         expect(result[0].id).toBe('target');
@@ -78,7 +78,7 @@ describe('mergeGroups', () => {
         };
         const groups = [targetGroup, sourceGroup];
 
-        const result = mergeGroups(groups, 'source', 'target');
+        const result = mergeGroupsIntoTarget(groups, 'source', 'target');
 
         expect(result[0].items).toHaveLength(2);
         expect(result[0].items[0].id).toBe('t1'); // Original kept, not t5
@@ -100,7 +100,7 @@ describe('mergeGroups', () => {
         };
         const groups = [targetGroup, sourceGroup, otherGroup];
 
-        const result = mergeGroups(groups, 'source', 'target');
+        const result = mergeGroupsIntoTarget(groups, 'source', 'target');
 
         expect(result).toHaveLength(2);
         expect(result.map((g: Group) => g.id)).toEqual(['target', 'other']);
@@ -108,19 +108,19 @@ describe('mergeGroups', () => {
 
     it('returns unchanged groups if source not found', () => {
         const groups = [mockGroup1, mockGroup2];
-        const result = mergeGroups(groups, 'nonexistent', mockGroup1.id);
+        const result = mergeGroupsIntoTarget(groups, 'nonexistent', mockGroup1.id);
         expect(result).toEqual(groups);
     });
 
     it('returns unchanged groups if target not found', () => {
         const groups = [mockGroup1, mockGroup2];
-        const result = mergeGroups(groups, mockGroup1.id, 'nonexistent');
+        const result = mergeGroupsIntoTarget(groups, mockGroup1.id, 'nonexistent');
         expect(result).toEqual(groups);
     });
 
     it('returns unchanged groups if source and target are the same', () => {
         const groups = [mockGroup1, mockGroup2];
-        const result = mergeGroups(groups, mockGroup1.id, mockGroup1.id);
+        const result = mergeGroupsIntoTarget(groups, mockGroup1.id, mockGroup1.id);
         expect(result).toEqual(groups);
         expect(result).toHaveLength(2);
     });
