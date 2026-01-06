@@ -36,3 +36,4 @@
 - Fixed `EXTENSION_PREFIX` in `constants.ts` throwing `ReferenceError` in test environments where `chrome.runtime` is unavailable ([PR #41](https://github.com/mtskf/Staaaash/pull/41)).
 - Fixed ESLint errors: Fast Refresh violations in shadcn/ui components, empty interfaces, setState in useEffect, and unused variables ([PR #45](https://github.com/mtskf/Staaaash/pull/45)).
 - Fixed memory leak in `GroupCard` by adding cleanup for `setTimeout` in useEffects ([PR #46](https://github.com/mtskf/Staaaash/pull/46)).
+- Replaced `any` types in test files with proper TypeScript types (`GlobalWithChrome`, `ChromeStorageLocal`, `User`) ([PR #47](https://github.com/mtskf/Staaaash/pull/47)).
