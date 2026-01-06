@@ -11,6 +11,7 @@
 - **Live Updates**: Dashboard now responds immediately to background script changes (e.g., archiving via icon) using `chrome.storage.onChanged` ([PR #38](https://github.com/mtskf/Staaaash/pull/38)).
 - **Accessibility**: Added `aria-label` to 6 icon buttons in GroupCard and TabCard for better screen reader support ([PR #38](https://github.com/mtskf/Staaaash/pull/38)).
 - **i18n Support**: Added `chrome.i18n` infrastructure, `messages.json`, and replaced hardcoded UI strings with generic `t()` wrapper  ([PR #39](https://github.com/mtskf/Staaaash/pull/39)).
+- **Test Coverage**: Added tests for `useAuth.ts` (8), `GroupCard.tsx` (15), `firebase.ts` (5) - total 108 tests ([PR #44](https://github.com/mtskf/Staaaash/pull/44)).
 
 ### Changed
 - **Sync Architecture**: Switched from Firebase SDK to REST API for MV3 CSP compliance.
@@ -33,3 +34,5 @@
 - Fixed `updateGroupData` failure leaving local state inconsistent by adding auto-reload/rollback ([PR #38](https://github.com/mtskf/Staaaash/pull/38)).
 - Removed unreachable dead code in `useKeyboardNav` Enter key handler ([PR #38](https://github.com/mtskf/Staaaash/pull/38)).
 - Fixed `EXTENSION_PREFIX` in `constants.ts` throwing `ReferenceError` in test environments where `chrome.runtime` is unavailable ([PR #41](https://github.com/mtskf/Staaaash/pull/41)).
+- Fixed ESLint errors: Fast Refresh violations in shadcn/ui components, empty interfaces, setState in useEffect, and unused variables ([PR #45](https://github.com/mtskf/Staaaash/pull/45)).
+- Fixed memory leak in `GroupCard` by adding cleanup for `setTimeout` in useEffects ([PR #46](https://github.com/mtskf/Staaaash/pull/46)).
