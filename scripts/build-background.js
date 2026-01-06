@@ -31,7 +31,24 @@ function parseEnv(filePath) {
   }
 }
 
-const envVars = parseEnv(resolve(rootDir, '.env'));
+const fileEnv = parseEnv(resolve(rootDir, '.env'));
+
+// Merge .env file with process.env (process.env takes precedence for CI)
+const envVars = { ...fileEnv };
+for (const [key, value] of Object.entries(process.env)) {
+  if (key.startsWith('VITE_') && value) {
+    envVars[key] = value;
+  }
+}
+
+// Build define object with individual keys
+const define = {
+  'import.meta.env.DEV': 'false',
+  'import.meta.env.PROD': 'true',
+};
+for (const [key, value] of Object.entries(envVars)) {
+  define[`import.meta.env.${key}`] = JSON.stringify(value);
+}
 
 await esbuild.build({
   entryPoints: [resolve(rootDir, 'src/background/index.ts')],
@@ -39,9 +56,7 @@ await esbuild.build({
   outfile: resolve(rootDir, 'dist/background.js'),
   format: 'esm',
   alias: { '@': resolve(rootDir, 'src') },
-  define: {
-    'import.meta.env': JSON.stringify(envVars),
-  },
+  define,
 });
 
 console.log('✅ background.js built with env vars');
