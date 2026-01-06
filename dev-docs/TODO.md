@@ -8,7 +8,7 @@
 ---
 
 ## Active
-- [ ] 💡🔧[S] `Enter` キー処理に到達不能な分岐があるため整理する。 (`src/hooks/useKeyboardNav.ts`) → PR #38 で対応済み、マージ待ち
+
 - [ ] 💡✨[M] UIのテキスト(Archive, Delete等)がハードコードされている。i18n対応の準備として定数化または `chrome.i18n` 化を検討する。 (`src/constants.ts`, components)
 - [ ] 💡🐛[S] `constants.ts` がモジュール読み込み時に `chrome.runtime` を参照し、テスト環境で例外になる可能性がある。遅延評価かガードを入れる。 (`src/constants.ts`)
 - [ ] 💡🔧[S] `initFirebaseSync` がシングルトンで、複数コンシューマーがマウントすると最初のunmountで全体のsyncが停止する。現在は `useGroups` のみが使用するため問題ないが、将来の拡張に備えてContext providerかref-countingパターンへのリファクタを検討する。 (`src/lib/storage.ts`)
