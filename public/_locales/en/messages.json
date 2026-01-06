@@ -5,16 +5,39 @@
   "sign_out": { "message": "Sign out" },
   "profile": { "message": "Profile" },
   "no_saved_tabs": { "message": "No saved tabs yet" },
+  "empty_state_description": { "message": "Click the extension icon in your browser toolbar to stash your open tabs into a new group." },
   "cancel": { "message": "Cancel" },
+  "delete": { "message": "Delete" },
+  "delete_group_confirm": {
+    "message": "This will permanently delete \"$1\" and its $2 tab(s). This action cannot be undone.",
+    "placeholders": {
+      "1": { "content": "$1" },
+      "2": { "content": "$2" }
+    }
+  },
   "click_to_rename": { "message": "Click to rename" },
   "unknown_date": { "message": "Unknown date" },
   "drop_tabs_here": { "message": "Drop tabs here" },
+  "section_pinned": { "message": "Pinned" },
+  "section_collections": { "message": "Collections" },
   "group_expand": { "message": "Expand group" },
   "group_collapse": { "message": "Collapse group" },
   "group_restore_all": { "message": "Restore all tabs" },
   "group_unpin": { "message": "Unpin group" },
   "group_pin": { "message": "Pin group" },
   "group_delete": { "message": "Delete group" },
+  "group_deleted": { "message": "Group deleted." },
   "tab_restore": { "message": "Restore tab" },
-  "tab_remove": { "message": "Remove tab" }
+  "tab_remove": { "message": "Remove tab" },
+  "tabs_count": {
+    "message": "$1 tabs",
+    "placeholders": { "1": { "content": "$1" } }
+  },
+  "search_placeholder": { "message": "Search groups and tabs..." },
+  "export": { "message": "Export" },
+  "import": { "message": "Import" },
+  "import_success": {
+    "message": "Imported $1 groups successfully!",
+    "placeholders": { "1": { "content": "$1" } }
+  }
 }

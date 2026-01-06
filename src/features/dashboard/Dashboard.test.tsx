@@ -44,7 +44,8 @@ describe('Dashboard', () => {
 
   it('renders empty state initially', async () => {
     render(<Dashboard />);
-    expect(await screen.findByText('No saved tabs yet')).toBeInTheDocument();
+    // t() returns the key itself in test environment (no chrome.i18n)
+    expect(await screen.findByText('no_saved_tabs')).toBeInTheDocument();
   });
 
   it('renders groups from storage', async () => {
@@ -63,6 +64,7 @@ describe('Dashboard', () => {
 
   it('shows search input', async () => {
     render(<Dashboard />);
-    expect(await screen.findByPlaceholderText('Search groups and tabs...')).toBeInTheDocument();
+    // t() returns the key itself in test environment (no chrome.i18n)
+    expect(await screen.findByPlaceholderText('search_placeholder')).toBeInTheDocument();
   });
 });

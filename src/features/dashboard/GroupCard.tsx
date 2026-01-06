@@ -169,7 +169,7 @@ export function GroupCard({
               <div className="text-[10px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
                 <span>{group.createdAt ? formatRelativeTime(group.createdAt) : t('unknown_date')}</span>
                 <span>•</span>
-                <span>{group.items.length} tabs</span>
+                <span>{t('tabs_count', [String(group.items.length)])}</span>
               </div>
             </div>
           </div>

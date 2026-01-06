@@ -39,10 +39,21 @@ Staaaash is a Chrome Extension that replaces the New Tab page with a dashboard t
 src/
 ├── background/      # Extension background service worker
 ├── components/ui/   # Generic UI components (shadcn/ui, sonner)
-├── features/        # Feature-specific logic (Dashboard, etc.)
-├── hooks/           # Custom React hooks (useGroups, useDashboardDnD, useKeyboardNav)
-├── lib/             # Utilities (storage, sync, logic, firebase)
+├── features/        # Feature-specific logic
+│   └── dashboard/   # Dashboard components (Dashboard, GroupCard, TabCard, AuthButton, DashboardHeader)
+├── hooks/           # Custom React hooks (useGroups, useDashboardDnD, useKeyboardNav, useAuth)
+├── lib/             # Utilities
+│   ├── storage.ts   # Chrome storage wrapper with Firebase sync
+│   ├── sync.ts      # Sync orchestration (polling, retry, race protection)
+│   ├── sync-utils.ts # 3-way merge logic
+│   ├── firebase.ts  # Firebase REST API client
+│   ├── logic.ts     # Pure functions for group/tab operations
+│   ├── migration.ts # Data migration utilities
+│   ├── i18n.ts      # chrome.i18n wrapper
+│   └── utils.ts     # General utilities
+├── test/            # Test setup
 ├── types/           # TypeScript definitions
+├── constants.ts     # Extension-wide constants
 ├── App.tsx          # Main app entry
 ├── main.tsx         # React entry point
 └── index.css        # Global styles

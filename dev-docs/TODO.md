@@ -9,12 +9,17 @@
 
 ## Active
 
-(empty)
+- [ ] 💡🔧[M] テストカバレッジ拡充: 以下のファイルにユニットテストがない
+  - `firebase.ts` (206行) - 外部依存が多く難易度高
+  - `GroupCard.tsx` (237行) - 主要UIコンポーネント
+  - `useAuth.ts` (71行) - 認証フック
 
 ---
 
 ## ✅ Done
 
+- [x] 💡✨ UI文言 i18n 完了: 残りのハードコード文言を `messages.json` に追加し `t()` で参照。Dashboard, DashboardHeader, GroupCard を更新。
+- [x] ⚠️🔧 `initFirebaseSync` ref-counting テスト追加: 複数サブスクライバの追加/削除で start/stop が正しく呼ばれることを検証。 [PR #42](https://github.com/mtskf/Staaaash/pull/42)
 - [x] 💡🔧 `initFirebaseSync`: ref-counting パターンを実装。複数コンシューマーがサブスクライブ可能に。最後のサブスクライバーがアンサブスクライブしたときのみクリーンアップ。 [PR #42](https://github.com/mtskf/Staaaash/pull/42)
 - [x] 💡🐛 `constants.ts`: `chrome.runtime` 参照にガードを追加し、テスト環境での例外を防止。テストも追加。 [PR #41](https://github.com/mtskf/Staaaash/pull/41)
 - [x] 💡✨ i18n対応基盤: `chrome.i18n` ラッパー作成、`messages.json` 導入、コンポーネントのハードコードテキスト置換。 [PR #39](https://github.com/mtskf/Staaaash/pull/39)

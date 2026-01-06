@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Kbd } from '@/components/ui/kbd';
 import { AuthButton } from './AuthButton';
 import { storage } from '@/lib/storage';
+import { t } from '@/lib/i18n';
 import type { Group } from '@/types';
 
 interface DashboardHeaderProps {
@@ -50,7 +51,7 @@ export function DashboardHeader({
       const importedGroups = await storage.importData(text);
       // Sort is handled in Dashboard/useGroups generally, but we can pass raw data
       onGroupsImported(importedGroups);
-      toast.success(`Imported ${importedGroups.length} groups successfully!`);
+      toast.success(t('import_success', [String(importedGroups.length)]));
     } catch {
       toast.error('Failed to import data. Invalid file format.');
     }
@@ -69,7 +70,7 @@ export function DashboardHeader({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             ref={searchInputRef}
-            placeholder="Search groups and tabs..."
+            placeholder={t('search_placeholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -87,11 +88,11 @@ export function DashboardHeader({
         <div className="flex">
           <Button variant="outline" size="sm" onClick={handleExport} className="rounded-r-none border-r-0">
             <Download className="h-4 w-4 mr-1" />
-            Export
+            {t('export')}
           </Button>
           <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="rounded-l-none">
             <Upload className="h-4 w-4 mr-1" />
-            Import
+            {t('import')}
           </Button>
         </div>
         <input
