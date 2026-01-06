@@ -1,5 +1,8 @@
 # TODO
 
+> [!IMPORTANT]
+> **Always keep this list sorted by Priority (High > Medium > Low).**
+
 **Legend**:
 - **Priority**: 🚨 High | ⚠️ Medium | 💡 Low | 🤖 Agent
 - **Type**: ✨ Feature | 🔧 Refactor | 🐛 Bug | ⚡ Performance | 📦 Infra | 📚 Docs | ✅ Check | ❓ Quest
