@@ -8,6 +8,8 @@
 - **Delete Confirmation**: Confirm dialog for group deletion (Enter confirm, Esc cancel).
 - **Sync Module**: New `sync.ts` with retry logic (exponential backoff), race condition handling, and auth state change protection ([PR #36](https://github.com/mtskf/Staaaash/pull/36)).
 - **Hook Tests**: Tests for `useDashboardDnD` (5 tests) and `useKeyboardNav` (6 tests) with fake timers ([PR #37](https://github.com/mtskf/Staaaash/pull/37)).
+- **Live Updates**: Dashboard now responds immediately to background script changes (e.g., archiving via icon) using `chrome.storage.onChanged` ([PR #38](https://github.com/mtskf/Staaaash/pull/38)).
+- **Accessibility**: Added `aria-label` to 6 icon buttons in GroupCard and TabCard for better screen reader support ([PR #38](https://github.com/mtskf/Staaaash/pull/38)).
 
 ### Changed
 - **Sync Architecture**: Switched from Firebase SDK to REST API for MV3 CSP compliance.
@@ -25,3 +27,6 @@
 - Fixed unnecessary storage writes on every Firebase poll. Added hash-based change detection to skip processing when remote data is unchanged ([PR #30](https://github.com/mtskf/Staaaash/pull/30)).
 - Fixed keyboard reorder not persisting `order` field; added order normalization to `reorderGroup` ([PR #35](https://github.com/mtskf/Staaaash/pull/35)).
 - Fixed stale sync results leaking after sign-out/account switch by invalidating in-flight requests on auth change ([PR #37](https://github.com/mtskf/Staaaash/pull/37)).
+- Fixed `GroupCard` title potentially desyncing from external updates (e.g., Sync) while not editing ([PR #38](https://github.com/mtskf/Staaaash/pull/38)).
+- Fixed `updateGroupData` failure leaving local state inconsistent by adding auto-reload/rollback ([PR #38](https://github.com/mtskf/Staaaash/pull/38)).
+- Removed unreachable dead code in `useKeyboardNav` Enter key handler ([PR #38](https://github.com/mtskf/Staaaash/pull/38)).
