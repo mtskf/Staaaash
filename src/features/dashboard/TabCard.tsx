@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { X, ArrowUpRight, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { t } from '@/lib/i18n';
 
 interface TabCardProps {
   tab: TabItem;
@@ -47,7 +48,7 @@ export const TabCard = forwardRef<HTMLDivElement, TabCardProps & React.HTMLAttri
                 onRestore(tab.id);
               }}
               onPointerDown={(e: React.PointerEvent) => e.stopPropagation()}
-              aria-label="Restore tab"
+              aria-label={t('tab_restore')}
             >
               <ArrowUpRight className="h-3.5 w-3.5" />
             </Button>
@@ -60,7 +61,7 @@ export const TabCard = forwardRef<HTMLDivElement, TabCardProps & React.HTMLAttri
                 onRemove(tab.id);
               }}
               onPointerDown={(e: React.PointerEvent) => e.stopPropagation()}
-              aria-label="Remove tab"
+              aria-label={t('tab_remove')}
             >
               <X className="h-3 w-3" />
             </Button>

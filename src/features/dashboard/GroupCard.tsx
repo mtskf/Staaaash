@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { SortableTabCard } from './TabCard';
 import { GripVertical, Trash2, ChevronDown, ChevronRight, Pin, ArrowUpRight, Pencil } from 'lucide-react';
 import { cn, formatRelativeTime } from '@/lib/utils';
+import { t } from '@/lib/i18n';
 
 interface GroupCardProps {
   group: Group;
@@ -127,7 +128,7 @@ export function GroupCard({
               size="icon"
               className="h-6 w-6 shrink-0"
               onClick={() => onUpdateGroup(group.id, { collapsed: !group.collapsed })}
-              aria-label={group.collapsed ? "Expand group" : "Collapse group"}
+              aria-label={group.collapsed ? t('group_expand') : t('group_collapse')}
             >
               {group.collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
@@ -155,7 +156,7 @@ export function GroupCard({
                     <h3
                       className="text-sm font-medium truncate cursor-text hover:underline"
                       onClick={() => setIsEditing(true)}
-                      title="Click to rename"
+                      title={t('click_to_rename')}
                     >
                       {group.title}
                     </h3>
@@ -166,7 +167,7 @@ export function GroupCard({
                   </div>
               )}
               <div className="text-[10px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                <span>{group.createdAt ? formatRelativeTime(group.createdAt) : 'Unknown date'}</span>
+                <span>{group.createdAt ? formatRelativeTime(group.createdAt) : t('unknown_date')}</span>
                 <span>•</span>
                 <span>{group.items.length} tabs</span>
               </div>
@@ -180,7 +181,7 @@ export function GroupCard({
                 size="icon"
                 className="h-7 w-7 text-muted-foreground hover:text-foreground"
                 onClick={() => onRestore(group.id)}
-                aria-label="Restore all tabs"
+                aria-label={t('group_restore_all')}
               >
                 <ArrowUpRight className="h-3.5 w-3.5" />
               </Button>
@@ -191,7 +192,7 @@ export function GroupCard({
                 size="icon"
                 className={cn("h-7 w-7", group.pinned ? "text-yellow-500" : "text-muted-foreground")}
                 onClick={() => onUpdateGroup(group.id, { pinned: !group.pinned })}
-                aria-label={group.pinned ? "Unpin group" : "Pin group"}
+                aria-label={group.pinned ? t('group_unpin') : t('group_pin')}
               >
                 {group.pinned ? <Pin className="h-3.5 w-3.5 fill-current" /> : <Pin className="h-3.5 w-3.5" />}
               </Button>
@@ -202,7 +203,7 @@ export function GroupCard({
                 size="icon"
                 className="h-7 w-7 text-red-500 hover:text-red-600"
                 onClick={() => onRemoveGroup(group.id)}
-                aria-label="Delete group"
+                aria-label={t('group_delete')}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
@@ -214,7 +215,7 @@ export function GroupCard({
             <SortableContext items={group.items.map((t: TabItem) => t.id)} strategy={verticalListSortingStrategy}>
               {group.items.length === 0 ? (
                  <div className="text-center text-muted-foreground text-xs py-4 border-2 border-dashed rounded-md">
-                   Drop tabs here
+                   {t('drop_tabs_here')}
                  </div>
               ) : (
                  group.items.map((tab: TabItem) => (

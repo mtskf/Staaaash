@@ -1,0 +1,20 @@
+{
+  "app_name": { "message": "Staaaash" },
+  "app_description": { "message": "A Toby-like tab manager for Chrome." },
+  "sign_in_to_sync": { "message": "Sign in to sync" },
+  "sign_out": { "message": "Sign out" },
+  "profile": { "message": "Profile" },
+  "no_saved_tabs": { "message": "No saved tabs yet" },
+  "cancel": { "message": "Cancel" },
+  "click_to_rename": { "message": "Click to rename" },
+  "unknown_date": { "message": "Unknown date" },
+  "drop_tabs_here": { "message": "Drop tabs here" },
+  "group_expand": { "message": "Expand group" },
+  "group_collapse": { "message": "Collapse group" },
+  "group_restore_all": { "message": "Restore all tabs" },
+  "group_unpin": { "message": "Unpin group" },
+  "group_pin": { "message": "Pin group" },
+  "group_delete": { "message": "Delete group" },
+  "tab_restore": { "message": "Restore tab" },
+  "tab_remove": { "message": "Remove tab" }
+}
