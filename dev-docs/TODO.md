@@ -8,7 +8,7 @@
 ---
 
 ## Active
-- [ ] 🚨🔧[M] GroupOps集約: `useKeyboardNav.ts` が独自のロジックで移動・並び替えを実装しており `logic.ts` を使用していない。`useDashboardDnD` と `useKeyboardNav` から操作ロジックを `useGroupOperations` フック等の共通レイヤーに切り出し、`logic.ts` を活用して重複を解消する。 (`src/hooks/useDashboardDnD.ts`, `src/hooks/useKeyboardNav.ts`)
+- [ ] 🚨🔧[M] GroupOps集約: `useKeyboardNav.ts` が独自のロジックで移動・並び替えを実装しており `logic.ts` を使用していない。`useDashboardDnD` と `useKeyboardNav` の操作ロジックを `logic.ts` の純粋関数に委譲して重複を解消する。（共通フック化は過度な抽象化と判断し行わない） (`src/hooks/useDashboardDnD.ts`, `src/hooks/useKeyboardNav.ts`)
 - [ ] 🚨🔧[M] Sync分割: `storage.ts` がローカル・Firebase・同期・マージ・移行の全責務を持っGod Object化している。`SyncManager` クラス等に同期ロジックを分離し、`storage.ts` はインターフェース定義と単純な保存のみに留める。 (`src/lib/storage.ts`)
 - [ ] 🚨✅[M] Hooksテスト追加: `useGroups`, `useDashboardDnD`, `useKeyboardNav` のテストが存在しない（`Dashboard.test.tsx` は初期表示のみを確認）。複雑な状態遷移を持つため、これらのカスタムフックに対するユニットテスト/統合テストを追加する。
 - [ ] 🚨🔧[S] mergeGroups命名: 関数が `sync-utils.ts` (`mergeGroupsThreeWay`) と `logic.ts` (`mergeGroups`) で名前が似ているが動作が異なる（3-way merge vs 2-group merge）。`mergeGroupsIntoTarget` 等にリネームして区別する。 (`src/lib/sync-utils.ts`, `src/lib/logic.ts`)
