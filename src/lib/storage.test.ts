@@ -1,7 +1,23 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import type { Group } from '@/types';
+import type { User } from 'firebase/auth';
 import { storage, initFirebaseSync } from './storage';
 import { getCurrentUser, saveGroupsToFirebase, onAuthStateChanged } from '@/lib/firebase';
+
+// Type for globalThis with chrome extension API
+type ChromeStorageLocal = {
+  QUOTA_BYTES: number;
+  get: ReturnType<typeof vi.fn>;
+  set: ReturnType<typeof vi.fn>;
+  getBytesInUse?: ReturnType<typeof vi.fn>;
+};
+
+type GlobalWithChrome = typeof globalThis & {
+  chrome?: {
+    storage?: { local?: ChromeStorageLocal };
+    runtime?: { lastError?: chrome.runtime.LastError };
+  };
+};
 
 vi.mock('@/lib/firebase', () => ({
   getCurrentUser: vi.fn(() => null),
@@ -22,7 +38,8 @@ describe('storage', () => {
       delete store[key];
     }
 
-    (globalThis as any).chrome = {
+    const global = globalThis as GlobalWithChrome;
+    global.chrome = {
       storage: {
         local: {
           QUOTA_BYTES: 10485760,
@@ -52,7 +69,7 @@ describe('storage', () => {
       runtime: {
         lastError: undefined,
       },
-    } as any;
+    };
   });
 
   it('adds new groups at the top by order', async () => {
@@ -123,7 +140,7 @@ describe('storage', () => {
 
   it('saves locally even when Firebase sync fails', async () => {
     // Setup: user is authenticated and Firebase will fail
-    vi.mocked(getCurrentUser).mockReturnValue({ uid: 'test-user' } as any);
+    vi.mocked(getCurrentUser).mockReturnValue({ uid: 'test-user' } as User);
     vi.mocked(saveGroupsToFirebase).mockRejectedValue(new Error('Network error'));
 
     const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -179,9 +196,6 @@ describe('initFirebaseSync ref-counting', () => {
       return mockAuthUnsubscribe;
     });
 
-    type GlobalWithChrome = typeof globalThis & {
-      chrome?: { storage?: unknown; runtime?: unknown };
-    };
     const global = globalThis as GlobalWithChrome;
     global.chrome = {
       storage: {
