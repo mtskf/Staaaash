@@ -18,6 +18,7 @@
 - **Data Fetching**: Fallback for empty arrays when loading from Firebase.
 - **Renamed**: `mergeGroups` → `mergeGroupsIntoTarget` for clarity ([PR #34](https://github.com/mtskf/Staaaash/pull/34)).
 - **Refactored**: `useKeyboardNav` now uses `reorderGroup` from `logic.ts`; pinned-first invariant guaranteed ([PR #35](https://github.com/mtskf/Staaaash/pull/35)).
+- **Refactored**: `initFirebaseSync` now uses ref-counting pattern, allowing multiple subscribers with cleanup only when last subscriber unsubscribes ([PR #42](https://github.com/mtskf/Staaaash/pull/42)).
 
 ### Fixed
 - Fixed crash when a group became empty (Firebase data structure mismatch).

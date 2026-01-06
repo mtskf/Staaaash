@@ -9,12 +9,13 @@
 
 ## Active
 
-- [ ] 💡🔧[S] `initFirebaseSync` がシングルトンで、複数コンシューマーがマウントすると最初のunmountで全体のsyncが停止する。現在は `useGroups` のみが使用するため問題ないが、将来の拡張に備えてContext providerかref-countingパターンへのリファクタを検討する。 (`src/lib/storage.ts`)
+(empty)
 
 ---
 
 ## ✅ Done
 
+- [x] 💡🔧 `initFirebaseSync`: ref-counting パターンを実装。複数コンシューマーがサブスクライブ可能に。最後のサブスクライバーがアンサブスクライブしたときのみクリーンアップ。 [PR #42](https://github.com/mtskf/Staaaash/pull/42)
 - [x] 💡🐛 `constants.ts`: `chrome.runtime` 参照にガードを追加し、テスト環境での例外を防止。テストも追加。 [PR #41](https://github.com/mtskf/Staaaash/pull/41)
 - [x] 💡✨ i18n対応基盤: `chrome.i18n` ラッパー作成、`messages.json` 導入、コンポーネントのハードコードテキスト置換。 [PR #39](https://github.com/mtskf/Staaaash/pull/39)
 - [x] ⚠️❓ migration.ts調査: `migrateToFirebase` は存在せず (`migrateAddUpdatedAt` が使用中)。対応不要。 [PR #38](https://github.com/mtskf/Staaaash/pull/38)

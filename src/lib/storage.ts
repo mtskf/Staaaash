@@ -15,7 +15,9 @@ const LOCAL_STORAGE_KEY = 'staaaash_groups';
 
 // Keep track of Firebase subscription
 let firebaseUnsubscribe: (() => void) | null = null;
-let syncCallback: ((groups: Group[]) => void) | null = null;
+
+// Ref-counting for multiple subscribers
+const syncCallbacks = new Set<(groups: Group[]) => void>();
 
 // Local storage key for tracking last synced state (Base for 3-way merge)
 const LAST_SYNCED_KEY = 'staaaash_last_synced';
@@ -41,25 +43,35 @@ let authUnsubscribe: (() => void) | null = null;
  * This should be called when user signs in
  * Returns an unsubscribe function to clean up all subscriptions
  *
- * NOTE: This is a singleton - only one consumer should call this at a time.
- * Currently only useGroups() calls this. If multiple consumers are needed,
- * consider using a Context provider or ref-counting pattern.
+ * Uses ref-counting pattern: multiple consumers can subscribe, and cleanup
+ * only happens when the last subscriber unsubscribes.
  */
 export function initFirebaseSync(onGroupsUpdated: (groups: Group[]) => void): () => void {
+  // Add this callback to the set of subscribers
+  syncCallbacks.add(onGroupsUpdated);
+
+  // If this is the first subscriber, start the sync
+  if (syncCallbacks.size === 1) {
+    startSync();
+  }
+
+  // Return cleanup function for this specific subscriber
+  return () => {
+    syncCallbacks.delete(onGroupsUpdated);
+
+    // If no more subscribers, clean up everything
+    if (syncCallbacks.size === 0) {
+      stopSync();
+    }
+  };
+}
+
+/**
+ * Start Firebase sync (called when first subscriber registers)
+ */
+function startSync(): void {
   // Run updatedAt migration
   migrateAddUpdatedAt().catch(console.error);
-
-  // Clean up existing subscriptions
-  if (firebaseUnsubscribe) {
-    firebaseUnsubscribe();
-    firebaseUnsubscribe = null;
-  }
-  if (authUnsubscribe) {
-    authUnsubscribe();
-    authUnsubscribe = null;
-  }
-
-  syncCallback = onGroupsUpdated;
 
   // Listen to auth state changes
   authUnsubscribe = onAuthStateChanged((user) => {
@@ -110,25 +122,28 @@ export function initFirebaseSync(onGroupsUpdated: (groups: Group[]) => void): ()
           });
         }
 
-        // Notify listeners
-        syncCallback?.(mergedGroups);
+        // Notify all subscribers
+        for (const callback of syncCallbacks) {
+          callback(mergedGroups);
+        }
       });
     }
   });
+}
 
-  // Return cleanup function
-  return () => {
-    if (firebaseUnsubscribe) {
-      firebaseUnsubscribe();
-      firebaseUnsubscribe = null;
-    }
-    if (authUnsubscribe) {
-      authUnsubscribe();
-      authUnsubscribe = null;
-    }
-    syncCallback = null;
-    lastRemoteDataHash = null;
-  };
+/**
+ * Stop Firebase sync (called when last subscriber unsubscribes)
+ */
+function stopSync(): void {
+  if (firebaseUnsubscribe) {
+    firebaseUnsubscribe();
+    firebaseUnsubscribe = null;
+  }
+  if (authUnsubscribe) {
+    authUnsubscribe();
+    authUnsubscribe = null;
+  }
+  lastRemoteDataHash = null;
 }
 
 /**
