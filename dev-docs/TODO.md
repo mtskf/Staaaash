@@ -12,14 +12,36 @@
 - [ ] ⚠️✨[S] Empty state/セクション背景をブランドトーンに合わせて強調する。淡いグラデーション/パネル背景とアイコンイラストを追加し、Pinned/Collections も視覚階層を強める。 (`src/features/dashboard/Dashboard.tsx`, `index.css` など)
 - [ ] 💡✨[S] UX用アイコンアセットを追加し、Empty state やセクション見出しで利用できるようにする。 (`public/assets/` 追加、参照箇所は Dashboard 周辺)
 - [ ] 🎨✨[M] Visual Hierarchy強化: Pinnedセクションに特別な背景色/グラデーションを適用し、Collectionsとの区別を明確化。カードデザインをリッチにする（影、ボーダー、アイコン）。
+- [ ] 🧩✨[I] Atomic Design整理: `src/features/dashboard` 内のコンポーネントが肥大化しつつあるため、`src/components/domain` 等への分割を検討（まだ必須ではない）。
 - [ ] 🎨✨[S] Empty State改善: 親しみやすいイラスト/アイコンと、次のアクションを促すメッセージで空白時の体験を向上。
 - [ ] ♿️🔧[S] A11y向上: リスト構造 (`ul/li`) の適用、ドラッグ操作時の `aria-live` 通知の実装、フォーカス管理の堅牢化。
-- [ ] 🤖🔧[S] AIルール強化: `.agent/rules.md` に禁止/要確認コマンド（例: `git reset --hard`, `rm -rf`, 外部API呼び出し）とコミットレビューの定型フロー（差分取得→静的チェック→テスト→出力フォーマット）を追記。
-- [ ] 🤖📚[S] エージェント向けガイド: `dev-docs/DEV_GUIDE.md` を作成し、必読ファイル一覧、レビュー優先度基準（P0-P3例示）、テスト実行ポリシー、作業ログテンプレート（読んだファイル/実行コマンド/スキップ理由）をまとめる。
-- [ ] 🤖✅[S] 起動チェックリスト: サンドボックス/ネットワーク設定確認を作業開始時の定型手順に追加し、AIが毎回確認する運用を文書化する。
-- [ ] 🤖✨[I] AI Workflows拡充: `add-feature.md` (機能追加) や `fix-bug.md` (バグ修正) の思考プロセスを定義し、実装品質を標準化。
-- [ ] 🤖📦[I] CI/Pre-commit導入: Lint/Test の自動実行を仕組み化し、AIが修正時の回帰テストを忘れないようにするガードレールを強化。
-- [ ] 🤖📚[I] `DEV_GUIDE.md` 作成: AI向けに特化した「コードの読み方・変更の作法」をまとめたメタドキュメントを整備。
+
+### 🤖 AI Agentic Workflow 改善 (現状スコア: 5.5/10 → 目標: 7.5/10)
+
+**Phase 1: Critical (~2h)** - 即効性高
+- [ ] 🤖🔧[S] `.agent/rules.md` 強化 (~30min)
+  - 禁止コマンド: `git reset --hard`, `rm -rf`, `git push --force`
+  - 確認必須: 破壊的 git 操作、大規模リファクタ、外部 API 呼び出し
+  - コミットレビューフロー: 差分取得 → 静的チェック → テスト → 出力フォーマット
+- [ ] 🤖📚[S] `dev-docs/DEV_GUIDE.md` 作成 (~1-2h)
+  - 必読順: SPEC → ARCHITECTURE → DECISIONS → 該当モジュール
+  - 優先度基準: P0 (auth/sync) → P1 (hooks) → P2 (UI) → P3 (utils)
+  - タスク別エントリーポイント (どこを見れば良いか)
+  - テスト実行ポリシー、作業ログテンプレート
+
+**Phase 2: Important (~1h)** - 自動化
+- [ ] 🤖📦[S] Pre-commit hook 導入 (~20min)
+  - `.husky/pre-commit` で `pnpm lint && pnpm test` 自動実行
+  - console.log, デバッグコード混入防止
+- [ ] 🤖✨[M] `.agent/workflows/` 拡充
+  - `add-feature.md`: SPEC確認 → テスト先行 → 実装 → dev-docs更新
+  - `fix-bug.md`: 再現 → 失敗テスト → 最小修正 → 回帰テスト
+
+**Phase 3: Nice-to-have**
+- [ ] 🤖📦[M] GitHub Actions CI (`ci.yml`): PR/push で lint/test/build 自動実行
+- [ ] 🤖✅[S] 起動チェックリスト: 環境確認 (sandbox, network, Chrome API) を定型化
+- [ ] 🤖📚[S] ARCHITECTURE にモジュール依存グラフ追加
+
 ---
 
 ## ✅ Done
