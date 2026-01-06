@@ -1,6 +1,9 @@
 
 export const STORAGE_KEY = 'staaaash-storage';
-export const EXTENSION_PREFIX = `chrome-extension://${chrome.runtime.id}`;
+export const EXTENSION_PREFIX =
+  typeof chrome !== 'undefined' && chrome.runtime?.id
+    ? `chrome-extension://${chrome.runtime.id}`
+    : '';
 export const DEFAULT_GROUP_TITLE = 'Archive';
 
 // Drag & Drop Types
