@@ -47,13 +47,14 @@ export function GroupCard({
     if (autoFocusName) {
       setIsEditing(true);
       // Small delay to ensure input is rendered before focus
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
           const input = document.getElementById(`group-title-${group.id}`) as HTMLInputElement;
           if (input) {
               input.focus();
               input.select();
           }
       }, 50);
+      return () => clearTimeout(timeoutId);
     }
   }, [autoFocusName, group.id]);
 
@@ -61,13 +62,14 @@ export function GroupCard({
   React.useEffect(() => {
     if (isRenaming) {
         setIsEditing(true);
-        setTimeout(() => {
+        const timeoutId = setTimeout(() => {
             const input = document.getElementById(`group-title-${group.id}`) as HTMLInputElement;
             if (input) {
                 input.focus();
                 input.select();
             }
         }, 50);
+        return () => clearTimeout(timeoutId);
     }
   }, [isRenaming, group.id]);
 
