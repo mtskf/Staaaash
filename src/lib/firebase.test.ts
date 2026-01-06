@@ -28,28 +28,25 @@ const mockChrome = {
   },
 };
 
-type GlobalWithChrome = typeof globalThis & {
-  chrome?: typeof mockChrome;
-};
-
 describe('firebase module', () => {
   let getGroupsFromFirebase: typeof import('./firebase').getGroupsFromFirebase;
   let saveGroupsToFirebase: typeof import('./firebase').saveGroupsToFirebase;
   let subscribeToGroups: typeof import('./firebase').subscribeToGroups;
 
-  // Preserve original chrome to restore after tests
-  const global = globalThis as GlobalWithChrome;
-  const originalChrome = global.chrome;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const originalChrome = (globalThis as any).chrome;
 
   beforeEach(async () => {
     vi.resetModules();
     vi.clearAllMocks();
 
-    global.chrome = mockChrome;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).chrome = mockChrome;
     mockChrome.runtime.lastError = undefined;
 
     // Mock fetch
-    global.fetch = vi.fn();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).fetch = vi.fn();
 
     // Re-import after mocks are set up
     const firebaseModule = await import('./firebase');
@@ -61,7 +58,8 @@ describe('firebase module', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     // Restore original chrome stub from setup.ts
-    global.chrome = originalChrome;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).chrome = originalChrome;
   });
 
   describe('getGroupsFromFirebase', () => {

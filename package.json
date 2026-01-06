@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build && esbuild src/background/index.ts --bundle --outfile=dist/background.js --format=esm --alias:@=./src --define:import.meta.env='{\"DEV\":false}'",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

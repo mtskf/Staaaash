@@ -37,12 +37,12 @@ const mockGroup2: Group = {
 };
 
 describe('useDashboardDnD', () => {
-  let mockUpdateGroups: ReturnType<typeof vi.fn>;
+  let mockUpdateGroups: (groups: Group[]) => Promise<void>;
   let shiftPressedRef: React.RefObject<boolean>;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUpdateGroups = vi.fn().mockResolvedValue(undefined);
+    mockUpdateGroups = vi.fn().mockResolvedValue(undefined) as (groups: Group[]) => Promise<void>;
     shiftPressedRef = { current: false };
   });
 

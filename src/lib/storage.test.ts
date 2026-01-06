@@ -4,21 +4,6 @@ import type { User } from 'firebase/auth';
 import { storage, initFirebaseSync } from './storage';
 import { getCurrentUser, saveGroupsToFirebase, onAuthStateChanged } from '@/lib/firebase';
 
-// Type for globalThis with chrome extension API
-type ChromeStorageLocal = {
-  QUOTA_BYTES: number;
-  get: ReturnType<typeof vi.fn>;
-  set: ReturnType<typeof vi.fn>;
-  getBytesInUse?: ReturnType<typeof vi.fn>;
-};
-
-type GlobalWithChrome = typeof globalThis & {
-  chrome?: {
-    storage?: { local?: ChromeStorageLocal };
-    runtime?: { lastError?: chrome.runtime.LastError };
-  };
-};
-
 vi.mock('@/lib/firebase', () => ({
   getCurrentUser: vi.fn(() => null),
   onAuthStateChanged: vi.fn(() => () => {}),
@@ -38,8 +23,8 @@ describe('storage', () => {
       delete store[key];
     }
 
-    const global = globalThis as GlobalWithChrome;
-    global.chrome = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).chrome = {
       storage: {
         local: {
           QUOTA_BYTES: 10485760,
@@ -179,7 +164,7 @@ describe('storage', () => {
 });
 
 describe('initFirebaseSync ref-counting', () => {
-  let authCallback: ((user: { uid: string } | null) => void) | null = null;
+  let authCallback: ((user: User | null) => void) | null = null;
   let mockAuthUnsubscribe: ReturnType<typeof vi.fn>;
   let initFirebaseSyncFn: typeof initFirebaseSync;
 
@@ -191,13 +176,13 @@ describe('initFirebaseSync ref-counting', () => {
     authCallback = null;
     mockAuthUnsubscribe = vi.fn();
 
-    vi.mocked(onAuthStateChanged).mockImplementation((cb) => {
+    vi.mocked(onAuthStateChanged).mockImplementation((cb: (user: User | null) => void) => {
       authCallback = cb;
-      return mockAuthUnsubscribe;
+      return mockAuthUnsubscribe as () => void;
     });
 
-    const global = globalThis as GlobalWithChrome;
-    global.chrome = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).chrome = {
       storage: {
         local: {
           QUOTA_BYTES: 10485760,

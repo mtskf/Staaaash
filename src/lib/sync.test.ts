@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { Group } from '@/types';
+import type { User } from 'firebase/auth';
 import { startSync, stopSync } from './sync';
 import * as firebase from './firebase';
 
@@ -23,17 +24,17 @@ const mockGroup: Group = {
 };
 
 describe('sync module', () => {
-  let mockUnsubscribe: ReturnType<typeof vi.fn>;
+  let mockUnsubscribe: () => void;
 
   beforeEach(() => {
     vi.useFakeTimers();
     vi.clearAllMocks();
-    mockUnsubscribe = vi.fn();
+    mockUnsubscribe = vi.fn() as () => void;
     vi.mocked(firebase.subscribeToGroups).mockReturnValue(mockUnsubscribe);
-    vi.mocked(firebase.getCurrentUser).mockReturnValue({ uid: 'user123' } as firebase.User);
-    vi.mocked(firebase.onAuthStateChanged).mockImplementation((cb) => {
-      cb({ uid: 'user123' } as firebase.User);
-      return vi.fn();
+    vi.mocked(firebase.getCurrentUser).mockReturnValue({ uid: 'user123' } as User);
+    vi.mocked(firebase.onAuthStateChanged).mockImplementation((cb: (user: User | null) => void) => {
+      cb({ uid: 'user123' } as User);
+      return vi.fn() as () => void;
     });
   });
 

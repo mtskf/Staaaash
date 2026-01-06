@@ -1,29 +1,9 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 
-// Type for globalThis with chrome extension API mock
-type GlobalWithChrome = typeof globalThis & {
-  chrome?: {
-    storage?: {
-      sync?: {
-        get: ReturnType<typeof vi.fn>;
-        set: ReturnType<typeof vi.fn>;
-        remove: ReturnType<typeof vi.fn>;
-      };
-    };
-    tabs?: {
-      create: ReturnType<typeof vi.fn>;
-      query: ReturnType<typeof vi.fn>;
-    };
-    runtime?: {
-      lastError?: chrome.runtime.LastError;
-    };
-  };
-};
-
-// Mock Chrome API
-const global = globalThis as GlobalWithChrome;
-global.chrome = {
+// Mock Chrome API - use type assertion to avoid complex Chrome type matching
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(globalThis as any).chrome = {
   storage: {
     sync: {
       get: vi.fn(),
@@ -43,7 +23,7 @@ global.chrome = {
 // Mock matchMedia for Radix UI
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-   
+
   value: vi.fn().mockImplementation(query => ({
     matches: false,
     media: query,

@@ -35,14 +35,14 @@ const mockGroup2: Group = {
 };
 
 describe('useKeyboardNav', () => {
-  let mockUpdateGroups: ReturnType<typeof vi.fn>;
-  let mockUpdateGroupData: ReturnType<typeof vi.fn>;
-  let mockRestoreGroup: ReturnType<typeof vi.fn>;
-  let mockRestoreTab: ReturnType<typeof vi.fn>;
-  let mockRemoveGroup: ReturnType<typeof vi.fn>;
-  let mockRemoveTab: ReturnType<typeof vi.fn>;
-  let mockSetRenamingGroupId: ReturnType<typeof vi.fn>;
-  let mockSetSelectedId: ReturnType<typeof vi.fn>;
+  let mockUpdateGroups: (groups: Group[]) => Promise<void>;
+  let mockUpdateGroupData: (id: string, updates: Partial<Group>) => Promise<void>;
+  let mockRestoreGroup: (id: string) => Promise<void>;
+  let mockRestoreTab: (groupId: string, tabId: string) => Promise<void>;
+  let mockRemoveGroup: (id: string) => Promise<void>;
+  let mockRemoveTab: (groupId: string, tabId: string) => Promise<void>;
+  let mockSetRenamingGroupId: (id: string | null) => void;
+  let mockSetSelectedId: (id: string | null) => void;
   let searchInputRef: React.RefObject<HTMLInputElement | null>;
 
   const createFlattenedItems = (groups: Group[]): FlattenedItem[] => {
@@ -60,14 +60,14 @@ describe('useKeyboardNav', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUpdateGroups = vi.fn().mockResolvedValue(undefined);
-    mockUpdateGroupData = vi.fn().mockResolvedValue(undefined);
-    mockRestoreGroup = vi.fn().mockResolvedValue(undefined);
-    mockRestoreTab = vi.fn().mockResolvedValue(undefined);
-    mockRemoveGroup = vi.fn().mockResolvedValue(undefined);
-    mockRemoveTab = vi.fn().mockResolvedValue(undefined);
-    mockSetRenamingGroupId = vi.fn();
-    mockSetSelectedId = vi.fn();
+    mockUpdateGroups = vi.fn().mockResolvedValue(undefined) as (groups: Group[]) => Promise<void>;
+    mockUpdateGroupData = vi.fn().mockResolvedValue(undefined) as (id: string, updates: Partial<Group>) => Promise<void>;
+    mockRestoreGroup = vi.fn().mockResolvedValue(undefined) as (id: string) => Promise<void>;
+    mockRestoreTab = vi.fn().mockResolvedValue(undefined) as (groupId: string, tabId: string) => Promise<void>;
+    mockRemoveGroup = vi.fn().mockResolvedValue(undefined) as (id: string) => Promise<void>;
+    mockRemoveTab = vi.fn().mockResolvedValue(undefined) as (groupId: string, tabId: string) => Promise<void>;
+    mockSetRenamingGroupId = vi.fn() as (id: string | null) => void;
+    mockSetSelectedId = vi.fn() as (id: string | null) => void;
     searchInputRef = { current: null };
   });
 

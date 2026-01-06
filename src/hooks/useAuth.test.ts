@@ -6,6 +6,7 @@ import {
   signOut,
   onAuthStateChanged,
 } from '@/lib/firebase';
+import type { User } from 'firebase/auth';
 
 vi.mock('@/lib/firebase', () => ({
   signInWithGoogle: vi.fn(),
@@ -13,10 +14,10 @@ vi.mock('@/lib/firebase', () => ({
   onAuthStateChanged: vi.fn(),
 }));
 
-const mockUser = { uid: 'test-uid', email: 'test@example.com' };
+const mockUser = { uid: 'test-uid', email: 'test@example.com' } as User;
 
 describe('useAuth', () => {
-  let authCallback: ((user: { uid: string; email: string } | null) => void) | null = null;
+  let authCallback: ((user: User | null) => void) | null = null;
   let mockUnsubscribe: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
@@ -24,9 +25,9 @@ describe('useAuth', () => {
     authCallback = null;
     mockUnsubscribe = vi.fn();
 
-    vi.mocked(onAuthStateChanged).mockImplementation((cb) => {
+    vi.mocked(onAuthStateChanged).mockImplementation((cb: (user: User | null) => void) => {
       authCallback = cb;
-      return mockUnsubscribe;
+      return mockUnsubscribe as () => void;
     });
   });
 
@@ -79,7 +80,7 @@ describe('useAuth', () => {
   });
 
   it('calls signInWithGoogle on signIn', async () => {
-    vi.mocked(signInWithGoogle).mockResolvedValue(mockUser as ReturnType<typeof signInWithGoogle> extends Promise<infer T> ? T : never);
+    vi.mocked(signInWithGoogle).mockResolvedValue(mockUser);
 
     const { result } = renderHook(() => useAuth());
 

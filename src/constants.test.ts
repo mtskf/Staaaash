@@ -1,14 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
-type GlobalWithChrome = typeof globalThis & {
-  chrome?: { runtime?: { id?: string } };
-};
-const global = globalThis as GlobalWithChrome;
-
 describe('constants', () => {
   beforeEach(() => {
     vi.resetModules();
-    delete global.chrome;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (globalThis as any).chrome = undefined;
   });
 
   describe('EXTENSION_PREFIX', () => {
@@ -18,13 +14,15 @@ describe('constants', () => {
     });
 
     it('should return empty string when chrome.runtime.id is undefined', async () => {
-      global.chrome = { runtime: {} };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (globalThis as any).chrome = { runtime: {} };
       const { EXTENSION_PREFIX } = await import('./constants');
       expect(EXTENSION_PREFIX).toBe('');
     });
 
     it('should return correct prefix when chrome.runtime.id is available', async () => {
-      global.chrome = { runtime: { id: 'test-extension-id' } };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (globalThis as any).chrome = { runtime: { id: 'test-extension-id' } };
       const { EXTENSION_PREFIX } = await import('./constants');
       expect(EXTENSION_PREFIX).toBe('chrome-extension://test-extension-id');
     });
