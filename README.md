@@ -48,16 +48,49 @@ Declutter your browser and your mind. Staaaash helps you organize tabs into name
 
 ---
 
-## 🛠️ Installation & Development
+## 🛠️ Development Setup
 
+### 1. Prerequisites
+- Node.js (v18+)
+- pnpm
+
+### 2. Clone & Install
 ```bash
-# Clone the repository
 git clone https://github.com/mtskf/Staaaash.git
 cd Staaaash
-
-# Install dependencies
 pnpm install
+```
 
+### 3. Firebase & Google Auth Configuration
+Staaaash uses Firebase for sync and Google Auth for identity.
+
+1. **Create a Firebase Project**
+   - Go to [Firebase Console](https://console.firebase.google.com/)
+   - Create a new project.
+   - Enable **Authentication** and **Realtime Database**.
+
+2. **Register a Web App**
+   - In Project Settings > General, click the `</>` icon to add a web app.
+   - Copy the configuration keys (apiKey, authDomain, etc.).
+
+3. **Configure Environment Variables**
+   - Copy `.env.example` to `.env`:
+     ```bash
+     cp .env.example .env
+     ```
+   - Fill in your Firebase config values in `.env`.
+
+4. **Setup Google OAuth (Important)**
+   - To make `chrome.identity` work, you need a specific OAuth Client ID.
+   - Go to [Google Cloud Console](https://console.cloud.google.com/) > APIs & Services > Credentials.
+   - Create a **OAuth 2.0 Client ID** (Type: **Web application**, NOT Chrome Extension).
+   - **Authorized Redirect URIs**: Add `https://<YOUR-EXTENSION-ID>.chromiumapp.org/`
+     - *Note: You can get your Extension ID from `chrome://extensions` after loading the unpacked extension once.*
+   - Add this Client ID to `.env` as `VITE_GOOGLE_CLIENT_ID`.
+   - In Firebase Console > Authentication > Sign-in method, ensure **Google** provider is enabled and whitelisted with this Client ID.
+
+### 4. Build & Run
+```bash
 # Start Dev Server (HMR)
 pnpm run dev
 
