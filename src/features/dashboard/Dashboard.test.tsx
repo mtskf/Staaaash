@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { Dashboard } from './Dashboard';
 import type { Group } from '@/types';
@@ -66,5 +66,51 @@ describe('Dashboard', () => {
     render(<Dashboard />);
     // t() returns the key itself in test environment (no chrome.i18n)
     expect(await screen.findByPlaceholderText('search_placeholder')).toBeInTheDocument();
+  });
+
+  it('selects group after renaming via click', async () => {
+    vi.mocked(storage.get).mockResolvedValue({ groups: [mockGroup] });
+    vi.mocked(storage.updateGroups).mockResolvedValue(undefined);
+
+    render(<Dashboard />);
+
+    // Wait for group to render
+    const groupTitle = await screen.findByText('Test Group');
+    expect(groupTitle).toBeInTheDocument();
+
+    // Click on group title to enter edit mode
+    fireEvent.click(groupTitle);
+
+    // Find the input and confirm with Enter
+    const input = screen.getByDisplayValue('Test Group');
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    // Group card should have selection ring (ring-2 ring-primary)
+    await waitFor(() => {
+      const groupCard = document.getElementById('item-g1');
+      expect(groupCard?.querySelector('.ring-2')).toBeInTheDocument();
+    });
+  });
+
+  it('selects group after canceling rename with Escape', async () => {
+    vi.mocked(storage.get).mockResolvedValue({ groups: [mockGroup] });
+
+    render(<Dashboard />);
+
+    // Wait for group to render
+    const groupTitle = await screen.findByText('Test Group');
+
+    // Click on group title to enter edit mode
+    fireEvent.click(groupTitle);
+
+    // Find the input and cancel with Escape
+    const input = screen.getByDisplayValue('Test Group');
+    fireEvent.keyDown(input, { key: 'Escape' });
+
+    // Group card should have selection ring
+    await waitFor(() => {
+      const groupCard = document.getElementById('item-g1');
+      expect(groupCard?.querySelector('.ring-2')).toBeInTheDocument();
+    });
   });
 });
