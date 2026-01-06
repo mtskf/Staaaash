@@ -25,10 +25,11 @@ export function filterGroups(groups: Group[], query: string): Group[] {
 }
 
 /**
- * Merge source group into target group, removing duplicates by URL.
- * Returns new groups array with source removed and target containing merged items.
+ * Merge source group into target group (for Shift+Drag operations).
+ * Removes duplicates by URL. Returns new groups array with source removed
+ * and target containing merged items.
  */
-export function mergeGroups(
+export function mergeGroupsIntoTarget(
     groups: Group[],
     sourceGroupId: string,
     targetGroupId: string

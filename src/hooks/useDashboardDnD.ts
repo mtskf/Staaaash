@@ -12,7 +12,7 @@ import {
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import type { Group, TabItem } from '@/types';
-import { mergeGroups, reorderTabInGroup, moveTabToGroup } from '@/lib/logic';
+import { mergeGroupsIntoTarget, reorderTabInGroup, moveTabToGroup } from '@/lib/logic';
 
 export function useDashboardDnD(
   groups: Group[],
@@ -75,7 +75,7 @@ export function useDashboardDnD(
         if (targetGroupId && active.id !== targetGroupId) {
             if (shiftPressedRef.current) {
                 // Merge Groups
-                const newGroups = mergeGroups(groups, active.id as string, targetGroupId);
+                const newGroups = mergeGroupsIntoTarget(groups, active.id as string, targetGroupId);
                 if (newGroups !== groups) {
                     await updateGroups(newGroups);
                 }
