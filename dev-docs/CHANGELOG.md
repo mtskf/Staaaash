@@ -10,6 +10,7 @@
 - **Hook Tests**: Tests for `useDashboardDnD` (5 tests) and `useKeyboardNav` (6 tests) with fake timers ([PR #37](https://github.com/mtskf/Staaaash/pull/37)).
 - **Live Updates**: Dashboard now responds immediately to background script changes (e.g., archiving via icon) using `chrome.storage.onChanged` ([PR #38](https://github.com/mtskf/Staaaash/pull/38)).
 - **Accessibility**: Added `aria-label` to 6 icon buttons in GroupCard and TabCard for better screen reader support ([PR #38](https://github.com/mtskf/Staaaash/pull/38)).
+- **i18n Support**: Added `chrome.i18n` infrastructure, `messages.json`, and replaced hardcoded UI strings with generic `t()` wrapper  ([PR #39](https://github.com/mtskf/Staaaash/pull/39)).
 
 ### Changed
 - **Sync Architecture**: Switched from Firebase SDK to REST API for MV3 CSP compliance.
