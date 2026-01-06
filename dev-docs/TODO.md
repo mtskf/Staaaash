@@ -1,21 +1,22 @@
 # TODO
 
 **Legend**:
-- **Priority**: 🚨 High | ⚠️ Medium | 💡 Low
-- **Type**: ✨ Feature | 🔧 Refactor | 🐛 Bug | ⚡ Performance | 📦 Infra
-- **Scope**: [S] 1-2 files | [M] 3-5 files | [L] 6+ files
+- **Priority**: 🚨 High | ⚠️ Medium | 💡 Low | 🤖 Agent
+- **Type**: ✨ Feature | 🔧 Refactor | 🐛 Bug | ⚡ Performance | 📦 Infra | 📚 Docs | ✅ Check | ❓ Quest
+- **Scope**: [S] 1-2 files | [M] 3-5 files | [L] 6+ files | [I] Idea/Research
 
 ---
 
 ## Active
 
-- [ ] 💡🔧[M] テストの `any` 型を適切な型に置換
-  - `storage.test.ts:25,55,126` / `setup.ts:21`
 - [ ] ⚠️✨[S] Empty state/セクション背景をブランドトーンに合わせて強調する。淡いグラデーション/パネル背景とアイコンイラストを追加し、Pinned/Collections も視覚階層を強める。 (`src/features/dashboard/Dashboard.tsx`, `index.css` など)
 - [ ] 💡✨[S] UX用アイコンアセットを追加し、Empty state やセクション見出しで利用できるようにする。 (`public/assets/` 追加、参照箇所は Dashboard 周辺)
 - [ ] 🎨✨[M] Visual Hierarchy強化: Pinnedセクションに特別な背景色/グラデーションを適用し、Collectionsとの区別を明確化。カードデザインをリッチにする（影、ボーダー、アイコン）。
 - [ ] 🎨✨[S] Empty State改善: 親しみやすいイラスト/アイコンと、次のアクションを促すメッセージで空白時の体験を向上。
 - [ ] ♿️🔧[S] A11y向上: リスト構造 (`ul/li`) の適用、ドラッグ操作時の `aria-live` 通知の実装、フォーカス管理の堅牢化。
+- [ ] 🤖🔧[S] AIルール強化: `.agent/rules.md` に禁止/要確認コマンド（例: `git reset --hard`, `rm -rf`, 外部API呼び出し）とコミットレビューの定型フロー（差分取得→静的チェック→テスト→出力フォーマット）を追記。
+- [ ] 🤖📚[S] エージェント向けガイド: `dev-docs/DEV_GUIDE.md` を作成し、必読ファイル一覧、レビュー優先度基準（P0-P3例示）、テスト実行ポリシー、作業ログテンプレート（読んだファイル/実行コマンド/スキップ理由）をまとめる。
+- [ ] 🤖✅[S] 起動チェックリスト: サンドボックス/ネットワーク設定確認を作業開始時の定型手順に追加し、AIが毎回確認する運用を文書化する。
 - [ ] 🤖✨[I] AI Workflows拡充: `add-feature.md` (機能追加) や `fix-bug.md` (バグ修正) の思考プロセスを定義し、実装品質を標準化。
 - [ ] 🤖📦[I] CI/Pre-commit導入: Lint/Test の自動実行を仕組み化し、AIが修正時の回帰テストを忘れないようにするガードレールを強化。
 - [ ] 🤖📚[I] `DEV_GUIDE.md` 作成: AI向けに特化した「コードの読み方・変更の作法」をまとめたメタドキュメントを整備。
@@ -23,6 +24,7 @@
 
 ## ✅ Done
 
+- [x] 💡🔧[M] テストの `any` 型を適切な型に置換。`GlobalWithChrome`, `ChromeStorageLocal`, `User` 型を追加。 [PR #47](https://github.com/mtskf/Staaaash/pull/47)
 - [x] 💡🐛[S] GroupCard.tsx setTimeout にcleanup関数を追加。メモリリークを防止。
 - [x] 🚨🔧[S] ESLint修正: Fast Refresh違反、空interface、useEffect内setState、未使用変数を修正。badge/button/input/kbd/Dashboard/storage 各ファイル。
 - [x] 💡🔧[M] テストカバレッジ拡充: `useAuth.ts` (8 tests), `GroupCard.tsx` (15 tests), `firebase.ts` (5 tests) を追加。合計28テスト追加で108テストに。
