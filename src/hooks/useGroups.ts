@@ -14,17 +14,23 @@ export function useGroups() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  // Helper: sort groups with pinned first, then by order (non-destructive)
+  const sortPinnedFirst = (arr: Group[]) => [...arr].sort((a, b) => {
+    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+    return a.order - b.order;
+  });
+
   useEffect(() => {
     // Load initial data from local storage
     const loadInitialData = async () => {
       const data = await storage.get();
-      setGroups(data.groups.sort((a, b) => a.order - b.order));
+      setGroups(sortPinnedFirst(data.groups));
     };
     loadInitialData();
 
     // Initialize Firebase sync - this will update groups when remote changes occur
     const unsubscribe = initFirebaseSync((syncedGroups) => {
-      setGroups(syncedGroups.sort((a, b) => a.order - b.order));
+      setGroups(sortPinnedFirst([...syncedGroups]));
     });
 
     // Cleanup on unmount
@@ -32,8 +38,8 @@ export function useGroups() {
   }, []);
 
   const updateGroups = useCallback(async (newGroups: Group[]) => {
-    // Optimistic update
-    setGroups(newGroups);
+    // Optimistic update with pinned-first sort to maintain invariant
+    setGroups(sortPinnedFirst([...newGroups]));
     try {
       await storage.updateGroups(newGroups);
     } catch (error) {
@@ -44,13 +50,14 @@ export function useGroups() {
       }
       // Revert/Reload on error
       const data = await storage.get();
-      setGroups(data.groups.sort((a, b) => a.order - b.order));
+      setGroups(sortPinnedFirst(data.groups));
     }
   }, []);
 
   const updateGroupData = useCallback(async (id: string, data: Partial<Group>) => {
     const newGroups = groups.map(g => g.id === id ? { ...g, ...data } : g);
-    setGroups(newGroups); // Optimistic update
+    // Re-sort to maintain pinned-first invariant (e.g., after pin toggle)
+    setGroups(sortPinnedFirst([...newGroups]));
     try {
       await storage.updateGroups(newGroups);
     } catch {

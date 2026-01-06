@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filterGroups, mergeGroupsIntoTarget, reorderTabInGroup, moveTabToGroup } from './logic';
+import { filterGroups, mergeGroupsIntoTarget, reorderTabInGroup, moveTabToGroup, reorderGroup } from './logic';
 import type { Group, TabItem } from '@/types';
 
 const mockTab1: TabItem = { id: 't1', title: 'Google', url: 'https://google.com' };
@@ -283,5 +283,75 @@ describe('moveTabToGroup', () => {
         const result = moveTabToGroup(groups, 't1', mockGroup1.id, mockGroup1.id);
         expect(result).toEqual(groups);
         expect(result.find((g: Group) => g.id === mockGroup1.id)?.items).toHaveLength(2);
+    });
+});
+
+describe('reorderGroup', () => {
+    // Test groups: p1, p2 are pinned; u1, u2 are unpinned
+    const p1: Group = { id: 'p1', title: 'Pinned 1', pinned: true, collapsed: false, order: 0, createdAt: 0, updatedAt: 0, items: [] };
+    const p2: Group = { id: 'p2', title: 'Pinned 2', pinned: true, collapsed: false, order: 1, createdAt: 0, updatedAt: 0, items: [] };
+    const u1: Group = { id: 'u1', title: 'Unpinned 1', pinned: false, collapsed: false, order: 2, createdAt: 0, updatedAt: 0, items: [] };
+    const u2: Group = { id: 'u2', title: 'Unpinned 2', pinned: false, collapsed: false, order: 3, createdAt: 0, updatedAt: 0, items: [] };
+    const groups = [p1, p2, u1, u2];
+
+    it('swaps P1 and P2 when P1 moves down', () => {
+        const result = reorderGroup(groups, 'p1', 'down');
+        expect(result.map((g: Group) => g.id)).toEqual(['p2', 'p1', 'u1', 'u2']);
+        // New array check implies immutability
+        expect(result).not.toBe(groups);
+    });
+
+    it('returns same groups when local move is invalid (boundary)', () => {
+        const result = reorderGroup(groups, 'p2', 'down');
+        expect(result).toEqual(groups);
+    });
+
+    it('moves U1 down within unpinned section', () => {
+        const result = reorderGroup(groups, 'u1', 'down');
+        expect(result.map((g: Group) => g.id)).toEqual(['p1', 'p2', 'u2', 'u1']);
+    });
+
+    it('blocks U1 from moving into pinned section', () => {
+        const result = reorderGroup(groups, 'u1', 'up');
+        expect(result).toEqual(groups);
+    });
+
+    it('returns same groups for invalid groupId', () => {
+        const result = reorderGroup(groups, 'invalid', 'up');
+        expect(result).toEqual(groups);
+    });
+
+    it('returns same groups when P1 moves up (already at top)', () => {
+        const result = reorderGroup(groups, 'p1', 'up');
+        expect(result).toEqual(groups);
+    });
+
+    it('returns same groups when U2 moves down (already at bottom)', () => {
+        const result = reorderGroup(groups, 'u2', 'down');
+        expect(result).toEqual(groups);
+    });
+
+    it('renormalizes order field after swap for persistence', () => {
+        const result = reorderGroup(groups, 'p1', 'down');
+        // After swap: [p2, p1, u1, u2] with order [0, 1, 2, 3]
+        expect(result.map((g: Group) => g.order)).toEqual([0, 1, 2, 3]);
+        // p2 is now at index 0 with order 0
+        expect(result[0].id).toBe('p2');
+        expect(result[0].order).toBe(0);
+        // p1 is now at index 1 with order 1
+        expect(result[1].id).toBe('p1');
+        expect(result[1].order).toBe(1);
+    });
+
+    // This test documents the pinned-first invariant requirement.
+    // useGroups is responsible for maintaining this order.
+    it('handles unpinned-first array (edge case - invariant violation)', () => {
+        // If caller passes unpinned-first array, boundary detection may be incorrect
+        const badOrder = [u1, u2, p1, p2]; // Violates pinned-first invariant
+        const result = reorderGroup(badOrder, 'p1', 'up');
+        // firstUnpinnedIndex = 0, pinnedEnd = 0
+        // p1 at index 2, targetIndex = 1, but 1 >= pinnedEnd (0) fails for pinned group
+        // This returns unchanged - which is safe but not ideal
+        expect(result).toBe(badOrder);
     });
 });

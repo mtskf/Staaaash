@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import type { Group, TabItem } from '@/types';
 import type { FlattenedItem } from './useGroups';
+import { reorderGroup } from '@/lib/logic';
 
 interface UseKeyboardNavProps {
   groups: Group[];
@@ -157,31 +158,12 @@ export function useKeyboardNav({
                  }
              }
          } else if (currentItem.type === 'group') {
-             const group = currentItem.data as Group;
-             const isPinned = group.pinned;
-             // Filter groups of same type
-             const relevantGroups = groups.filter(g => !!g.pinned === !!isPinned);
-             const groupIndex = relevantGroups.findIndex(g => g.id === currentItem.id);
-
-             if (groupIndex !== -1) {
-                 const targetIndex = e.key === 'ArrowUp' ? groupIndex - 1 : groupIndex + 1;
-
-                 // Check bounds within the filtered list
-                 if (targetIndex >= 0 && targetIndex < relevantGroups.length) {
-                     // We need to swap positions in the MAIN groups list
-                     // Find the neighbor in the main list
-                     const neighbor = relevantGroups[targetIndex];
-                     const mainIndexCurrent = groups.findIndex(g => g.id === group.id);
-                     const mainIndexNeighbor = groups.findIndex(g => g.id === neighbor.id);
-
-                     if (mainIndexCurrent !== -1 && mainIndexNeighbor !== -1) {
-                         const newGroups = [...groups];
-                         // Simple swap
-                         [newGroups[mainIndexCurrent], newGroups[mainIndexNeighbor]] = [newGroups[mainIndexNeighbor], newGroups[mainIndexCurrent]];
-                         await updateGroups(newGroups);
-                         document.getElementById(`item-${currentItem.id}`)?.scrollIntoView({ block: 'nearest' });
-                     }
-                 }
+             // Delegate to pure function for group reordering
+             const direction = e.key === 'ArrowUp' ? 'up' : 'down';
+             const newGroups = reorderGroup(groups, currentItem.id, direction);
+             if (newGroups !== groups) {
+                 await updateGroups(newGroups);
+                 document.getElementById(`item-${currentItem.id}`)?.scrollIntoView({ block: 'nearest' });
              }
          }
          return;
