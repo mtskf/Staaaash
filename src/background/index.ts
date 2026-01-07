@@ -97,11 +97,7 @@ chrome.contextMenus.onClicked.addListener((info) => {
 
 // Keyboard shortcut command listener
 chrome.commands.onCommand.addListener(async (command) => {
-  if (command === "archive-tabs") {
-    const currentWindow = await chrome.windows.getCurrent();
-    if (!currentWindow.id) return;
-    await archiveTabs(currentWindow.id);
-  } else if (command === "open-collection") {
+  if (command === "open-collection") {
     await chrome.tabs.create({ url: "index.html" });
   }
 });
