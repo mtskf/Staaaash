@@ -27,8 +27,12 @@ const LAST_SYNCED_KEY = 'staaaash_last_synced';
 let lastRemoteDataHash: string | null = null;
 
 // Write lock to prevent Firebase callback from overwriting local changes in progress
-// When true, Firebase subscription callback will skip processing
+// When true, Firebase subscription callback will queue data instead of processing immediately
 let localWriteInProgress = false;
+
+// Queue for remote data received during local write
+// Only the latest data is kept (newer updates supersede older ones)
+let pendingRemoteData: Group[] | null = null;
 
 /**
  * Generate a simple hash for groups array to detect changes
@@ -37,6 +41,61 @@ let localWriteInProgress = false;
 function hashGroups(groups: Group[]): string {
   const sorted = [...groups].sort((a, b) => a.id.localeCompare(b.id));
   return JSON.stringify(sorted);
+}
+
+/**
+ * Process remote data from Firebase
+ * Performs 3-way merge with local data and notifies subscribers
+ */
+async function processRemoteData(firebaseGroups: Group[]): Promise<void> {
+  // Check if remote data has changed since last poll
+  const remoteHash = hashGroups(firebaseGroups);
+  if (remoteHash === lastRemoteDataHash) {
+    // Remote data unchanged - skip merge/save to avoid unnecessary writes
+    return;
+  }
+  lastRemoteDataHash = remoteHash;
+
+  // 1. Get current local groups (Local)
+  const localGroups = await getFromLocal();
+
+  // 2. Get last synced groups (Base)
+  const lastSyncedGroups = await getLastSynced();
+
+  // 3. Perform 3-Way Merge
+  const { mergedGroups, newLocalGroups } = mergeGroupsThreeWay(localGroups, firebaseGroups, lastSyncedGroups);
+
+  // 4. Save merged result to local
+  await saveToLocal(mergedGroups);
+
+  // 5. Update Base (Last Synced) to match the new committed state
+  await saveLastSynced(mergedGroups);
+
+  // 6. If there were newly created local groups, sync them to Firebase
+  // Fire-and-forget: errors are logged but don't block the sync flow
+  if (newLocalGroups.length > 0) {
+    syncToFirebase(mergedGroups).catch((error) => {
+      console.warn('Firebase sync failed (will retry on next sync):', error);
+      // Reset hash so next poll will retry the sync
+      lastRemoteDataHash = null;
+    });
+  }
+
+  // Notify all subscribers
+  for (const callback of syncCallbacks) {
+    callback(mergedGroups);
+  }
+}
+
+/**
+ * Process any pending remote data that was queued during a local write
+ */
+async function processPendingRemoteData(): Promise<void> {
+  if (pendingRemoteData) {
+    const dataToProcess = pendingRemoteData;
+    pendingRemoteData = null;
+    await processRemoteData(dataToProcess);
+  }
 }
 
 // Keep track of auth state subscription
@@ -89,53 +148,14 @@ function startSync(): void {
     if (user) {
       // Subscribe to Firebase real-time updates
       firebaseUnsubscribe = subscribeToGroups(user.uid, async (firebaseGroups) => {
-        // Skip processing if a local write is in progress to prevent race conditions
-        // The local write will push to Firebase, triggering another callback
+        // If a local write is in progress, queue the data for later processing
+        // This prevents race conditions while ensuring we don't lose remote updates
         if (localWriteInProgress) {
+          pendingRemoteData = firebaseGroups;
           return;
         }
 
-        // Check if remote data has changed since last poll
-        const remoteHash = hashGroups(firebaseGroups);
-        if (remoteHash === lastRemoteDataHash) {
-          // Remote data unchanged - skip merge/save to avoid unnecessary writes
-          return;
-        }
-        lastRemoteDataHash = remoteHash;
-
-        // 1. Get current local groups (Local)
-        const localGroups = await getFromLocal();
-
-        // 2. Get last synced groups (Base)
-        const lastSyncedGroups = await getLastSynced();
-
-        // 3. Perform 3-Way Merge
-        const { mergedGroups, newLocalGroups } = mergeGroupsThreeWay(localGroups, firebaseGroups, lastSyncedGroups);
-
-        // 4. Save merged result to local
-        await saveToLocal(mergedGroups);
-
-        // 5. Update Base (Last Synced) to match the new committed state
-        // We include newLocalGroups in the 'base' because we are about to push them.
-        // Actually, strictly speaking, we should update Base after push success,
-        // but for eventual consistency in this flow, updating here is acceptable
-        // as the next poll will converge.
-        await saveLastSynced(mergedGroups);
-
-        // 6. If there were newly created local groups, sync them to Firebase
-        // Fire-and-forget: errors are logged but don't block the sync flow
-        if (newLocalGroups.length > 0) {
-          syncToFirebase(mergedGroups).catch((error) => {
-            console.warn('Firebase sync failed (will retry on next sync):', error);
-            // Reset hash so next poll will retry the sync
-            lastRemoteDataHash = null;
-          });
-        }
-
-        // Notify all subscribers
-        for (const callback of syncCallbacks) {
-          callback(mergedGroups);
-        }
+        await processRemoteData(firebaseGroups);
       });
     }
   });
@@ -304,6 +324,8 @@ export const storage = {
       } finally {
         // Clear write lock after all synchronous operations complete
         localWriteInProgress = false;
+        // Process any Firebase updates that were queued during the write
+        await processPendingRemoteData();
       }
     }
   },
