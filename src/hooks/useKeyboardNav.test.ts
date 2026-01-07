@@ -39,6 +39,8 @@ describe('useKeyboardNav', () => {
   let mockUpdateGroupData: (id: string, updates: Partial<Group>) => Promise<void>;
   let mockRestoreGroup: (id: string) => Promise<void>;
   let mockRestoreTab: (groupId: string, tabId: string) => Promise<void>;
+  let mockOpenGroup: (id: string) => Promise<void>;
+  let mockOpenTab: (groupId: string, tabId: string) => Promise<void>;
   let mockRemoveGroup: (id: string) => Promise<void>;
   let mockRemoveTab: (groupId: string, tabId: string) => Promise<void>;
   let mockSetRenamingGroupId: (id: string | null) => void;
@@ -64,6 +66,8 @@ describe('useKeyboardNav', () => {
     mockUpdateGroupData = vi.fn().mockResolvedValue(undefined) as (id: string, updates: Partial<Group>) => Promise<void>;
     mockRestoreGroup = vi.fn().mockResolvedValue(undefined) as (id: string) => Promise<void>;
     mockRestoreTab = vi.fn().mockResolvedValue(undefined) as (groupId: string, tabId: string) => Promise<void>;
+    mockOpenGroup = vi.fn().mockResolvedValue(undefined) as (id: string) => Promise<void>;
+    mockOpenTab = vi.fn().mockResolvedValue(undefined) as (groupId: string, tabId: string) => Promise<void>;
     mockRemoveGroup = vi.fn().mockResolvedValue(undefined) as (id: string) => Promise<void>;
     mockRemoveTab = vi.fn().mockResolvedValue(undefined) as (groupId: string, tabId: string) => Promise<void>;
     mockSetRenamingGroupId = vi.fn() as (id: string | null) => void;
@@ -85,6 +89,8 @@ describe('useKeyboardNav', () => {
         updateGroupData: mockUpdateGroupData,
         restoreGroup: mockRestoreGroup,
         restoreTab: mockRestoreTab,
+        openGroup: mockOpenGroup,
+        openTab: mockOpenTab,
         removeGroup: mockRemoveGroup,
         removeTab: mockRemoveTab,
         setRenamingGroupId: mockSetRenamingGroupId,
@@ -159,6 +165,8 @@ describe('useKeyboardNav', () => {
         updateGroupData: mockUpdateGroupData,
         restoreGroup: mockRestoreGroup,
         restoreTab: mockRestoreTab,
+        openGroup: mockOpenGroup,
+        openTab: mockOpenTab,
         removeGroup: mockRemoveGroup,
         removeTab: mockRemoveTab,
         setRenamingGroupId: mockSetRenamingGroupId,
@@ -173,5 +181,50 @@ describe('useKeyboardNav', () => {
     });
 
     expect(mockSetSelectedId).not.toHaveBeenCalled();
+  });
+
+  it('opens group without removing with Cmd+Option+Enter', () => {
+    renderNavHook([mockGroup1, mockGroup2], 'g1');
+
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'Enter',
+        metaKey: true,
+        altKey: true,
+      }));
+    });
+
+    expect(mockOpenGroup).toHaveBeenCalledWith('g1');
+    expect(mockRestoreGroup).not.toHaveBeenCalled();
+  });
+
+  it('opens tab without removing with Cmd+Option+Enter', () => {
+    renderNavHook([mockGroup1, mockGroup2], 't1');
+
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'Enter',
+        metaKey: true,
+        altKey: true,
+      }));
+    });
+
+    expect(mockOpenTab).toHaveBeenCalledWith('g1', 't1');
+    expect(mockRestoreTab).not.toHaveBeenCalled();
+  });
+
+  it('restores group with Cmd+Enter (without Option)', () => {
+    renderNavHook([mockGroup1, mockGroup2], 'g1');
+
+    act(() => {
+      window.dispatchEvent(new KeyboardEvent('keydown', {
+        key: 'Enter',
+        metaKey: true,
+        altKey: false,
+      }));
+    });
+
+    expect(mockRestoreGroup).toHaveBeenCalledWith('g1');
+    expect(mockOpenGroup).not.toHaveBeenCalled();
   });
 });

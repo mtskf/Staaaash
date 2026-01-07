@@ -177,4 +177,44 @@ describe('useGroups', () => {
     // Group should be removed
     expect(result.current.groups.map((g) => g.id)).toEqual(['g2']);
   });
+
+  it('opens a group without removing it from collections', async () => {
+    const { result } = renderHook(() => useGroups());
+
+    await waitFor(() => {
+      expect(result.current.groups).toHaveLength(2);
+    });
+
+    await act(async () => {
+      await result.current.openGroup('g1');
+    });
+
+    // Should open a new window with all tab URLs
+    expect(chrome.windows.create).toHaveBeenCalledWith({
+      url: ['https://one.test', 'https://two.test'],
+      focused: true,
+    });
+
+    // Group should NOT be removed
+    expect(result.current.groups.map((g) => g.id)).toEqual(['g2', 'g1']);
+  });
+
+  it('opens a tab without removing it from the group', async () => {
+    const { result } = renderHook(() => useGroups());
+
+    await waitFor(() => {
+      expect(result.current.groups).toHaveLength(2);
+    });
+
+    await act(async () => {
+      await result.current.openTab('g1', 't1');
+    });
+
+    // Should open the tab
+    expect(chrome.tabs.create).toHaveBeenCalledWith({ url: 'https://one.test', active: false });
+
+    // Tab should NOT be removed from the group
+    const group = result.current.groups.find((g) => g.id === 'g1');
+    expect(group?.items.map((t) => t.id)).toEqual(['t1', 't2']);
+  });
 });
