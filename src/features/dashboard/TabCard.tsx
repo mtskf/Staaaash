@@ -19,8 +19,8 @@ interface TabCardProps {
 
 export const TabCard = forwardRef<HTMLDivElement, TabCardProps & React.HTMLAttributes<HTMLDivElement>>(
   ({ tab, onRemove, onRestore, style, isDragging, isSelected, className, ...props }, ref) => {
-    const [imgError, setImgError] = useState(false);
-    const showFallback = !tab.favIconUrl || imgError;
+    const [errorUrl, setErrorUrl] = useState<string | null>(null);
+    const showFallback = !tab.favIconUrl || errorUrl === tab.favIconUrl;
 
     return (
       <div ref={ref} style={style} className={cn("touch-none", className)} {...props} id={`item-${tab.id}`}>
@@ -40,7 +40,7 @@ export const TabCard = forwardRef<HTMLDivElement, TabCardProps & React.HTMLAttri
                 src={tab.favIconUrl}
                 alt=""
                 className="w-4 h-4 shrink-0"
-                onError={() => setImgError(true)}
+                onError={() => setErrorUrl(tab.favIconUrl ?? null)}
               />
             )}
             <span className="truncate text-sm font-medium">{tab.title}</span>
