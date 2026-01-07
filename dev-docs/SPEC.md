@@ -41,7 +41,8 @@ A modern, minimalist Chrome tab manager that declutters and saves memory by grou
 ### 5. Keyboard Shortcuts
 | Shortcut | Action |
 |----------|--------|
-| `⌘` `⇧` `.` | Archive all tabs (global) |
+| `⌥` `S` | Archive all tabs (global) |
+| `⌥` `⇧` `S` | Open collection (global) |
 | `⌘` `F` | Focus Search |
 | `↵` | Rename selected group |
 | `⌘` `↵` | Restore selected item |

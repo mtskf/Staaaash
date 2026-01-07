@@ -29,7 +29,8 @@ Staaaash is a Chrome Extension that replaces the New Tab page with a dashboard t
   - **Change Detection**: Hash remote data to skip no-op polls.
 
 ### 3. Background Scripts (`src/background`)
-- **Archiving**: Extension icon click and `⌘+Shift+S` to archive current window tabs.
+- **Archiving**: Extension icon click or `⌥S` to archive current window tabs.
+- **Open Collection**: `⌥⇧S` to open the collection dashboard.
 - **Context Menu**: Manages the "Open Collections" context menu item.
 - **Keyboard Shortcuts**: Listens for `chrome.commands` for global shortcuts.
 - **Bundling**: `esbuild` for Service Worker module handling.
