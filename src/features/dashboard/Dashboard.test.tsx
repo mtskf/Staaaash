@@ -72,7 +72,7 @@ describe('Dashboard', () => {
 
   it('selects group after renaming via click', async () => {
     vi.mocked(storage.get).mockResolvedValue({ groups: [mockGroup] });
-    vi.mocked(storage.updateGroups).mockResolvedValue(undefined);
+    vi.mocked(storage.updateGroups).mockResolvedValue([mockGroup]);
 
     render(<Dashboard />);
 
@@ -116,7 +116,7 @@ describe('Dashboard', () => {
 
   it('selects group after renaming via blur', async () => {
     vi.mocked(storage.get).mockResolvedValue({ groups: [mockGroup] });
-    vi.mocked(storage.updateGroups).mockResolvedValue(undefined);
+    vi.mocked(storage.updateGroups).mockResolvedValue([mockGroup]);
 
     render(<Dashboard />);
 
@@ -134,7 +134,7 @@ describe('Dashboard', () => {
 
   it('selects group after starting rename via keyboard', async () => {
     vi.mocked(storage.get).mockResolvedValue({ groups: [mockGroup] });
-    vi.mocked(storage.updateGroups).mockResolvedValue(undefined);
+    vi.mocked(storage.updateGroups).mockResolvedValue([mockGroup]);
 
     render(<Dashboard />);
 
