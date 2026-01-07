@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+- Fixed deleted group reappearing briefly due to race condition between local write and Firebase sync callback. Added write lock to prevent sync callback from overwriting in-progress local changes.
+
 ## [0.1.1] - 2025-01-07
 
 ### Added

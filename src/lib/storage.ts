@@ -26,6 +26,10 @@ const LAST_SYNCED_KEY = 'staaaash_last_synced';
 // Reset on: auth state change, Firebase sync failure (to allow retry)
 let lastRemoteDataHash: string | null = null;
 
+// Write lock to prevent Firebase callback from overwriting local changes in progress
+// When true, Firebase subscription callback will skip processing
+let localWriteInProgress = false;
+
 /**
  * Generate a simple hash for groups array to detect changes
  * Uses JSON.stringify for simplicity - sufficient for change detection
@@ -85,6 +89,12 @@ function startSync(): void {
     if (user) {
       // Subscribe to Firebase real-time updates
       firebaseUnsubscribe = subscribeToGroups(user.uid, async (firebaseGroups) => {
+        // Skip processing if a local write is in progress to prevent race conditions
+        // The local write will push to Firebase, triggering another callback
+        if (localWriteInProgress) {
+          return;
+        }
+
         // Check if remote data has changed since last poll
         const remoteHash = hashGroups(firebaseGroups);
         if (remoteHash === lastRemoteDataHash) {
@@ -270,20 +280,30 @@ export const storage = {
 
   set: async (data: Partial<StorageSchema>): Promise<void> => {
     if (data.groups) {
-      // Save to local storage first (this is the primary operation)
-      await saveToLocal(data.groups);
+      // Set write lock to prevent Firebase callback from interfering
+      localWriteInProgress = true;
 
-      // Only update Base and sync to Firebase if user is authenticated
-      // This prevents groups created before login from being marked as "synced"
-      // which would cause them to be deleted during 3-way merge when Firebase returns empty
-      const user = getCurrentUser();
-      if (user) {
-        await saveLastSynced(data.groups);
-        // Sync to Firebase in background (fire-and-forget)
-        // Errors are logged but don't block local operations
-        syncToFirebase(data.groups).catch((error) => {
-          console.warn('Firebase sync failed (will retry on next sync):', error);
-        });
+      try {
+        // Save to local storage first (this is the primary operation)
+        await saveToLocal(data.groups);
+
+        // Only update Base and sync to Firebase if user is authenticated
+        // This prevents groups created before login from being marked as "synced"
+        // which would cause them to be deleted during 3-way merge when Firebase returns empty
+        const user = getCurrentUser();
+        if (user) {
+          await saveLastSynced(data.groups);
+          // Reset hash so next Firebase callback processes the update after our sync
+          lastRemoteDataHash = null;
+          // Sync to Firebase in background (fire-and-forget)
+          // Errors are logged but don't block local operations
+          syncToFirebase(data.groups).catch((error) => {
+            console.warn('Firebase sync failed (will retry on next sync):', error);
+          });
+        }
+      } finally {
+        // Clear write lock after all synchronous operations complete
+        localWriteInProgress = false;
       }
     }
   },
