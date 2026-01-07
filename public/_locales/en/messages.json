@@ -68,5 +68,8 @@
     "message": "$1 days ago",
     "placeholders": { "1": { "content": "$1" } }
   },
-  "time_yesterday": { "message": "Yesterday" }
+  "time_yesterday": { "message": "Yesterday" },
+  "sync_syncing": { "message": "Syncing..." },
+  "sync_synced": { "message": "Synced" },
+  "sync_error": { "message": "Sync error" }
 }

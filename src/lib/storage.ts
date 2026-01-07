@@ -1,4 +1,4 @@
-import type { StorageSchema, Group } from "@/types";
+import type { StorageSchema, Group, SyncStatus } from "@/types";
 import {
   getCurrentUser,
   onAuthStateChanged,
@@ -34,6 +34,43 @@ let localWriteInProgress = false;
 // Only the latest data is kept (newer updates supersede older ones)
 let pendingRemoteData: Group[] | null = null;
 
+// Sync status state and callbacks
+let currentSyncStatus: SyncStatus = { state: 'idle', error: null };
+const syncStatusCallbacks = new Set<(status: SyncStatus) => void>();
+
+/**
+ * Notify all sync status subscribers with the current status
+ * Isolates subscriber exceptions to prevent one failure from affecting others
+ */
+function notifySyncStatus(status: SyncStatus): void {
+  currentSyncStatus = status;
+  for (const callback of syncStatusCallbacks) {
+    try {
+      callback(status);
+    } catch (e) {
+      console.error('Sync status callback error:', e);
+    }
+  }
+}
+
+/**
+ * Subscribe to sync status changes
+ * Immediately notifies the current status on subscribe
+ * Returns an unsubscribe function
+ */
+export function subscribeSyncStatus(callback: (status: SyncStatus) => void): () => void {
+  syncStatusCallbacks.add(callback);
+  // Initial notification with exception isolation
+  try {
+    callback(currentSyncStatus);
+  } catch (e) {
+    console.error('Sync status callback error:', e);
+  }
+  return () => {
+    syncStatusCallbacks.delete(callback);
+  };
+}
+
 /**
  * Generate a simple hash for groups array to detect changes
  * Uses JSON.stringify for simplicity - sufficient for change detection
@@ -49,6 +86,7 @@ function hashGroups(groups: Group[]): string {
  */
 async function processRemoteData(firebaseGroups: Group[]): Promise<void> {
   // Check if remote data has changed since last poll
+  // Do this BEFORE syncing notification to avoid UI flash for no-op
   const remoteHash = hashGroups(firebaseGroups);
   if (remoteHash === lastRemoteDataHash) {
     // Remote data unchanged - skip merge/save to avoid unnecessary writes
@@ -56,34 +94,47 @@ async function processRemoteData(firebaseGroups: Group[]): Promise<void> {
   }
   lastRemoteDataHash = remoteHash;
 
-  // 1. Get current local groups (Local)
-  const localGroups = await getFromLocal();
+  // Notify syncing state (only when there's actual work to do)
+  notifySyncStatus({ state: 'syncing', error: null });
 
-  // 2. Get last synced groups (Base)
-  const lastSyncedGroups = await getLastSynced();
+  try {
+    // 1. Get current local groups (Local)
+    const localGroups = await getFromLocal();
 
-  // 3. Perform 3-Way Merge
-  const { mergedGroups, newLocalGroups } = mergeGroupsThreeWay(localGroups, firebaseGroups, lastSyncedGroups);
+    // 2. Get last synced groups (Base)
+    const lastSyncedGroups = await getLastSynced();
 
-  // 4. Save merged result to local
-  await saveToLocal(mergedGroups);
+    // 3. Perform 3-Way Merge
+    const { mergedGroups, newLocalGroups } = mergeGroupsThreeWay(localGroups, firebaseGroups, lastSyncedGroups);
 
-  // 5. Update Base (Last Synced) to match the new committed state
-  await saveLastSynced(mergedGroups);
+    // 4. Save merged result to local
+    await saveToLocal(mergedGroups);
 
-  // 6. If there were newly created local groups, sync them to Firebase
-  // Fire-and-forget: errors are logged but don't block the sync flow
-  if (newLocalGroups.length > 0) {
-    syncToFirebase(mergedGroups).catch((error) => {
-      console.warn('Firebase sync failed (will retry on next sync):', error);
-      // Reset hash so next poll will retry the sync
-      lastRemoteDataHash = null;
-    });
-  }
+    // 5. Update Base (Last Synced) to match the new committed state
+    await saveLastSynced(mergedGroups);
 
-  // Notify all subscribers
-  for (const callback of syncCallbacks) {
-    callback(mergedGroups);
+    // 6. If there were newly created local groups, sync them to Firebase
+    // Fire-and-forget: errors are logged but don't block the sync flow
+    if (newLocalGroups.length > 0) {
+      syncToFirebase(mergedGroups).catch((error) => {
+        console.warn('Firebase sync failed (will retry on next sync):', error);
+        notifySyncStatus({ state: 'error', error: String(error) });
+        // Reset hash so next poll will retry the sync
+        lastRemoteDataHash = null;
+      });
+    }
+
+    // Notify all subscribers
+    for (const callback of syncCallbacks) {
+      callback(mergedGroups);
+    }
+
+    // Notify synced state on success
+    notifySyncStatus({ state: 'synced', error: null });
+  } catch (e) {
+    // Notify error state on exception
+    notifySyncStatus({ state: 'error', error: String(e) });
+    throw e;
   }
 }
 
@@ -138,14 +189,19 @@ function startSync(): void {
 
   // Listen to auth state changes
   authUnsubscribe = onAuthStateChanged((user) => {
+    // 1. Unsubscribe from Firebase (stop new remote data from coming in)
     if (firebaseUnsubscribe) {
       firebaseUnsubscribe();
       firebaseUnsubscribe = null;
     }
-    // Reset hash when auth state changes (new user or logout)
+    // 2. Reset hash when auth state changes (new user or logout)
     lastRemoteDataHash = null;
+    // 3. Clear pending remote data (prevents old user's data from being processed)
+    pendingRemoteData = null;
 
     if (user) {
+      // 4. Notify syncing state on login
+      notifySyncStatus({ state: 'syncing', error: null });
       // Subscribe to Firebase real-time updates
       firebaseUnsubscribe = subscribeToGroups(user.uid, async (firebaseGroups) => {
         // If a local write is in progress, queue the data for later processing
@@ -157,6 +213,9 @@ function startSync(): void {
 
         await processRemoteData(firebaseGroups);
       });
+    } else {
+      // 4. Notify idle state on logout
+      notifySyncStatus({ state: 'idle', error: null });
     }
   });
 }
@@ -319,6 +378,7 @@ export const storage = {
           // Errors are logged but don't block local operations
           syncToFirebase(data.groups).catch((error) => {
             console.warn('Firebase sync failed (will retry on next sync):', error);
+            notifySyncStatus({ state: 'error', error: String(error) });
           });
         }
       } finally {

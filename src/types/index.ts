@@ -20,3 +20,11 @@ export interface Group {
 export interface StorageSchema {
   groups: Group[];
 }
+
+// Sync status types
+export type SyncState = 'idle' | 'syncing' | 'synced' | 'error';
+
+export interface SyncStatus {
+  state: SyncState;
+  error: string | null;
+}

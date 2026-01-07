@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Kbd } from '@/components/ui/kbd';
 import { AuthButton } from './AuthButton';
+import { SyncIndicator } from './SyncIndicator';
 import { storage } from '@/lib/storage';
 import { t } from '@/lib/i18n';
 import type { Group } from '@/types';
@@ -63,7 +64,10 @@ export function DashboardHeader({
     <header className="mb-8 max-w-3xl mx-auto w-full">
       <div className="flex items-center justify-between mb-8">
         <img src="/logo.png" alt="Staaaash" className="h-8" />
-        <AuthButton />
+        <div className="flex items-center gap-2">
+          <SyncIndicator />
+          <AuthButton />
+        </div>
       </div>
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
