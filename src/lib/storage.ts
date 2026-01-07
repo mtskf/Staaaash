@@ -132,6 +132,8 @@ async function processRemoteData(firebaseGroups: Group[]): Promise<void> {
     // Notify synced state on success
     notifySyncStatus({ state: 'synced', error: null });
   } catch (e) {
+    // Reset hash so next poll will retry processing
+    lastRemoteDataHash = null;
     // Notify error state on exception
     notifySyncStatus({ state: 'error', error: String(e) });
     throw e;

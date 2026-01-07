@@ -734,4 +734,55 @@ describe('sync status state transitions', () => {
     const recoveryCalls = statusCallback.mock.calls.map((c: [SyncStatus]) => c[0].state);
     expect(recoveryCalls).toContain('synced');
   });
+
+  it('resets hash on processRemoteData failure so retry works', async () => {
+    const statusCallback = vi.fn();
+    const groupCallback = vi.fn();
+
+    storageModule.subscribeSyncStatus(statusCallback);
+    storageModule.initFirebaseSync(groupCallback);
+
+    // Login
+    authCallback?.({ uid: 'test-user' } as User);
+    statusCallback.mockClear();
+
+    const group = mockGroup('g1', 'Test Group');
+
+    // Make saveToLocal fail on first call by setting lastError
+    let failOnce = true;
+    vi.mocked(chrome.storage.local.set).mockImplementation((data: Record<string, unknown>, callback: () => void) => {
+      if (failOnce && data[LOCAL_STORAGE_KEY]) {
+        failOnce = false;
+        chrome.runtime.lastError = { message: 'Storage error' };
+        callback();
+        chrome.runtime.lastError = undefined;
+        return;
+      }
+      Object.assign(store, data);
+      callback();
+    });
+
+    // First Firebase update - should fail
+    try {
+      await firebaseCallback?.([group]);
+    } catch {
+      // Expected to throw
+    }
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    // Should have error state
+    let calls = statusCallback.mock.calls.map((c: [SyncStatus]) => c[0].state);
+    expect(calls).toContain('error');
+
+    statusCallback.mockClear();
+
+    // Same data again - should NOT be skipped due to hash reset
+    await firebaseCallback?.([group]);
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    // Should process and succeed this time
+    calls = statusCallback.mock.calls.map((c: [SyncStatus]) => c[0].state);
+    expect(calls).toContain('syncing');
+    expect(calls).toContain('synced');
+  });
 });
