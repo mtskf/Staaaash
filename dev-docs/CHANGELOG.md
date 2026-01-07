@@ -18,6 +18,7 @@
 - **TabCard Tests**: Added 8 tests for favicon fallback behavior ([PR #55](https://github.com/mtskf/Staaaash/pull/55)).
 
 ### Changed
+- **i18n Completion**: Migrated remaining hardcoded strings in `AuthButton.tsx` and `formatRelativeTime` to `messages.json` ([PR #56](https://github.com/mtskf/Staaaash/pull/56)).
 - **Sync Architecture**: Switched from Firebase SDK to REST API for MV3 CSP compliance.
 - **Sync Logic**: 3-way merge to handle offline deletions and avoid "zombie" groups.
 - **Data Fetching**: Fallback for empty arrays when loading from Firebase.

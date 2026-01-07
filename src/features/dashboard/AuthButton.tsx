@@ -1,6 +1,7 @@
 import { LogIn, LogOut, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { t } from '@/lib/i18n';
 
 export function AuthButton() {
   const { user, loading, isAuthenticated, signIn, signOut } = useAuth();
@@ -22,7 +23,7 @@ export function AuthButton() {
         {user.photoURL && (
           <img
             src={user.photoURL}
-            alt="Profile"
+            alt={t('profile')}
             className="h-6 w-6 rounded-full"
           />
         )}
@@ -30,7 +31,7 @@ export function AuthButton() {
           variant="ghost"
           size="sm"
           onClick={signOut}
-          title="Sign out"
+          title={t('sign_out')}
         >
           <LogOut className="h-4 w-4" />
         </Button>
@@ -46,7 +47,7 @@ export function AuthButton() {
       className="gap-2"
     >
       <LogIn className="h-4 w-4" />
-      <span className="hidden sm:inline">Sign in to sync</span>
+      <span className="hidden sm:inline">{t('sign_in_to_sync')}</span>
     </Button>
   );
 }
