@@ -24,10 +24,17 @@
   "commands": {
     "archive-tabs": {
       "suggested_key": {
-        "default": "Ctrl+Shift+Period",
-        "mac": "Command+Shift+Period"
+        "default": "Alt+S",
+        "mac": "Alt+S"
       },
       "description": "Archive all tabs in current window"
+    },
+    "open-collection": {
+      "suggested_key": {
+        "default": "Alt+Shift+S",
+        "mac": "Alt+Shift+S"
+      },
+      "description": "Open collection"
     }
   }
 }

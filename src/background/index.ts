@@ -101,5 +101,7 @@ chrome.commands.onCommand.addListener(async (command) => {
     const currentWindow = await chrome.windows.getCurrent();
     if (!currentWindow.id) return;
     await archiveTabs(currentWindow.id);
+  } else if (command === "open-collection") {
+    await chrome.tabs.create({ url: "index.html" });
   }
 });
