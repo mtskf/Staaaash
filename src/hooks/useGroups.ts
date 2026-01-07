@@ -243,25 +243,6 @@ export function useGroups() {
     if (nextId) setSelectedId(nextId);
   }, [groups, updateGroups, getNextSelectionId]);
 
-  // Open group without removing from collections
-  const openGroup = useCallback(async (id: string) => {
-    const group = groups.find(g => g.id === id);
-    if (!group) return;
-
-    const urls = group.items.map(item => item.url);
-    await chrome.windows.create({ url: urls, focused: true });
-  }, [groups]);
-
-  // Open tab without removing from group
-  const openTab = useCallback(async (groupId: string, tabId: string) => {
-    const group = groups.find(g => g.id === groupId);
-    if (!group) return;
-    const tab = group.items.find(t => t.id === tabId);
-    if (!tab) return;
-
-    await chrome.tabs.create({ url: tab.url, active: false });
-  }, [groups]);
-
   return {
     groups,
     selectedId,
@@ -272,8 +253,6 @@ export function useGroups() {
     removeTab,
     restoreGroup,
     restoreTab,
-    openGroup,
-    openTab,
     getFlattenedItems,
   };
 }

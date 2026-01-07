@@ -11,8 +11,6 @@ interface UseKeyboardNavProps {
   updateGroupData: (id: string, data: Partial<Group>) => Promise<void>;
   restoreGroup: (id: string) => Promise<void>;
   restoreTab: (groupId: string, tabId: string) => Promise<void>;
-  openGroup: (id: string) => Promise<void>;
-  openTab: (groupId: string, tabId: string) => Promise<void>;
   removeGroup: (id: string) => Promise<void>;
   removeTab: (groupId: string, tabId: string) => Promise<void>;
   setRenamingGroupId: (id: string | null) => void;
@@ -30,8 +28,6 @@ export function useKeyboardNav({
   updateGroupData,
   restoreGroup,
   restoreTab,
-  openGroup,
-  openTab,
   removeGroup,
   removeTab,
   setRenamingGroupId,
@@ -228,15 +224,8 @@ export function useKeyboardNav({
           if (currentIndex !== -1) {
             const item = items[currentIndex];
 
-            // Open without removing: Cmd/Ctrl + Option/Alt + Enter
-            if ((e.metaKey || e.ctrlKey) && e.altKey) {
-               if (item.type === 'group') {
-                 openGroup(item.id);
-               } else if (item.type === 'tab' && item.groupId) {
-                 openTab(item.groupId, item.id);
-               }
             // Restore: Cmd/Ctrl + Enter
-            } else if (e.metaKey || e.ctrlKey) {
+            if (e.metaKey || e.ctrlKey) {
                if (item.type === 'group') {
                  restoreGroup(item.id);
                } else if (item.type === 'tab' && item.groupId) {
@@ -281,7 +270,7 @@ export function useKeyboardNav({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [getFlattenedItems, selectedId, groups, updateGroupData, restoreGroup, restoreTab, openGroup, openTab, removeGroup, removeTab, updateGroups, setRenamingGroupId, searchInputRef, setSelectedId, onRequestDeleteGroup, disabled]);
+  }, [getFlattenedItems, selectedId, groups, updateGroupData, restoreGroup, restoreTab, removeGroup, removeTab, updateGroups, setRenamingGroupId, searchInputRef, setSelectedId, onRequestDeleteGroup, disabled]);
 
   return { isShiftPressed, shiftPressedRef };
 }
