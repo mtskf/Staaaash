@@ -41,8 +41,8 @@ src/
 ├── background/      # Extension background service worker
 ├── components/ui/   # Generic UI components (shadcn/ui, sonner)
 ├── features/        # Feature-specific logic
-│   └── dashboard/   # Dashboard components (Dashboard, GroupCard, TabCard, AuthButton, DashboardHeader)
-├── hooks/           # Custom React hooks (useGroups, useDashboardDnD, useKeyboardNav, useAuth)
+│   └── dashboard/   # Dashboard components (Dashboard, GroupCard, TabCard, AuthButton, DashboardHeader, SyncIndicator)
+├── hooks/           # Custom React hooks (useGroups, useDashboardDnD, useKeyboardNav, useAuth, useSyncStatus)
 ├── lib/             # Utilities
 │   ├── storage.ts   # Chrome storage wrapper with Firebase sync
 │   ├── sync.ts      # Sync orchestration (polling, retry, race protection)
