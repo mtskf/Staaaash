@@ -42,3 +42,4 @@
 - Fixed ESLint errors: Fast Refresh violations in shadcn/ui components, empty interfaces, setState in useEffect, and unused variables ([PR #45](https://github.com/mtskf/Staaaash/pull/45)).
 - Fixed memory leak in `GroupCard` by adding cleanup for `setTimeout` in useEffects ([PR #46](https://github.com/mtskf/Staaaash/pull/46)).
 - Replaced `any` types in test files with proper TypeScript types (`GlobalWithChrome`, `ChromeStorageLocal`, `User`) ([PR #47](https://github.com/mtskf/Staaaash/pull/47)).
+- Fixed time messages using plural form for count of 1 (e.g., "1 mins ago" → "1 min ago") ([PR #57](https://github.com/mtskf/Staaaash/pull/57)).
