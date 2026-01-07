@@ -12,13 +12,14 @@
 
 ## Active
 
-- [ ] 💡✨[S] 同期ステータス表示: Firebase同期中/完了/エラーを示すインジケータをヘッダーに追加。
-- [ ] ⚠️✨[L] Groupのマージ機能 -> drag & dropでマージ
-- [ ] ⚠️✨[S] GroupのLock機能 -> 開いてもCollectionに残る
+(None)
 
 ---
 
 ## ✅ Done
+
+- [x] 💡✨[S] PINしたアイテムはリストアしてもCollectionに残る。[PR #64](https://github.com/mtskf/Staaaash/pull/64)
+- [x] 💡✨[S] 同期ステータス表示: Firebase同期中/完了/エラーを示すインジケータをヘッダーに追加。[PR #61](https://github.com/mtskf/Staaaash/pull/61)
 
 - [x] 💡✅[S] `migration.ts` テスト追加: `migrateAddUpdatedAt` の正常/異常パターン (6 tests)。 [PR #60](https://github.com/mtskf/Staaaash/pull/60)
 - [x] 💡🔧[S] i18n残り: `AuthButton.tsx` と `formatRelativeTime` のハードコード文言を `messages.json` へ移行。 [PR #56](https://github.com/mtskf/Staaaash/pull/56)

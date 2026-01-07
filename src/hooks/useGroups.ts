@@ -209,7 +209,6 @@ export function useGroups() {
   }, [groups, updateGroups, getNextSelectionId]);
 
   const restoreGroup = useCallback(async (id: string) => {
-    const nextId = getNextSelectionId(id);
     const group = groups.find(g => g.id === id);
     if (!group) return;
 
@@ -217,19 +216,27 @@ export function useGroups() {
     const urls = group.items.map(item => item.url);
     await chrome.windows.create({ url: urls, focused: true });
 
+    // Pinned groups stay in collection
+    if (group.pinned) return;
+
+    const nextId = getNextSelectionId(id);
     const newGroups = groups.filter(g => g.id !== id);
     await updateGroups(newGroups);
     if (nextId) setSelectedId(nextId);
   }, [groups, updateGroups, getNextSelectionId]);
 
   const restoreTab = useCallback(async (groupId: string, tabId: string) => {
-    const nextId = getNextSelectionId(tabId);
     const group = groups.find(g => g.id === groupId);
     if (!group) return;
     const tab = group.items.find(t => t.id === tabId);
     if (!tab) return;
 
     await chrome.tabs.create({ url: tab.url, active: false });
+
+    // Tabs in pinned groups stay in collection
+    if (group.pinned) return;
+
+    const nextId = getNextSelectionId(tabId);
     const newGroups = groups.map(g => {
         if (g.id === groupId) {
             return {
