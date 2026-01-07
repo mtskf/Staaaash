@@ -13,8 +13,6 @@
 ## Active
 
 - [ ] 💡✨[S] 同期ステータス表示: Firebase同期中/完了/エラーを示すインジケータをヘッダーに追加。
-- [ ] ⚠️✨[L] Groupのマージ機能 -> drag & dropでマージ
-- [ ] ⚠️✨[S] GroupのLock機能 -> 開いてもCollectionに残る
 
 ---
 

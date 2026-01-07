@@ -45,7 +45,8 @@ A modern, minimalist Chrome tab manager that declutters and saves memory by grou
 | `⌥` `⇧` `S` | Open collection (global) |
 | `⌘` `F` | Focus Search |
 | `↵` | Rename selected group |
-| `⌘` `↵` | Restore selected item |
+| `⌘` `↵` | Restore selected item (open and remove) |
+| `⌘` `⌥` `↵` | Open selected item (keep in collection) |
 | `⌫` | Delete selected item |
 | `P` | Pin/Unpin group |
 | `Esc` | Cancel editing |

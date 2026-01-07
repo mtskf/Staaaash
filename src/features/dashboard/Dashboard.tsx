@@ -60,6 +60,8 @@ export function Dashboard() {
       removeTab,
       restoreGroup,
       restoreTab,
+      openGroup,
+      openTab,
       getFlattenedItems,
   } = useGroups();
 
@@ -71,6 +73,8 @@ export function Dashboard() {
       updateGroupData,
       restoreGroup,
       restoreTab,
+      openGroup,
+      openTab,
       removeGroup,
       removeTab,
       setRenamingGroupId,

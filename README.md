@@ -57,7 +57,8 @@ Declutter your browser and your mind. Staaaash helps you organize tabs into name
 | Shortcut | Action |
 |:--------:|--------|
 | <kbd>↵</kbd> | Rename selected group |
-| <kbd>⌘</kbd> <kbd>↵</kbd> | Restore selected item |
+| <kbd>⌘</kbd> <kbd>↵</kbd> | Restore selected item (open and remove) |
+| <kbd>⌘</kbd> <kbd>⌥</kbd> <kbd>↵</kbd> | Open selected item (keep in collection) |
 | <kbd>⌫</kbd> | Delete selected item |
 | <kbd>P</kbd> | Pin/Unpin selected group |
 
