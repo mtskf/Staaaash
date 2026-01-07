@@ -27,6 +27,8 @@
   "group_pin": { "message": "Pin group" },
   "group_delete": { "message": "Delete group" },
   "group_deleted": { "message": "Group deleted." },
+  "tab_deleted": { "message": "Tab removed." },
+  "undo": { "message": "Undo" },
   "tab_restore": { "message": "Restore tab" },
   "tab_remove": { "message": "Remove tab" },
   "tabs_count": {
