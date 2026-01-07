@@ -1,10 +1,10 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { TabItem } from '@/types';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X, ArrowUpRight, GripVertical } from 'lucide-react';
+import { X, ArrowUpRight, GripVertical, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { t } from '@/lib/i18n';
 
@@ -19,6 +19,9 @@ interface TabCardProps {
 
 export const TabCard = forwardRef<HTMLDivElement, TabCardProps & React.HTMLAttributes<HTMLDivElement>>(
   ({ tab, onRemove, onRestore, style, isDragging, isSelected, className, ...props }, ref) => {
+    const [errorUrl, setErrorUrl] = useState<string | null>(null);
+    const showFallback = !tab.favIconUrl || errorUrl === tab.favIconUrl;
+
     return (
       <div ref={ref} style={style} className={cn("touch-none", className)} {...props} id={`item-${tab.id}`}>
         <Card className={cn(
@@ -30,8 +33,15 @@ export const TabCard = forwardRef<HTMLDivElement, TabCardProps & React.HTMLAttri
              <div tabIndex={-1} className="text-muted-foreground/50 cursor-grab active:cursor-grabbing">
                 <GripVertical className="h-4 w-4" />
              </div>
-            {tab.favIconUrl && (
-              <img src={tab.favIconUrl} alt="" className="w-4 h-4 shrink-0" />
+            {showFallback ? (
+              <Globe className="w-4 h-4 shrink-0 text-muted-foreground" />
+            ) : (
+              <img
+                src={tab.favIconUrl}
+                alt=""
+                className="w-4 h-4 shrink-0"
+                onError={() => setErrorUrl(tab.favIconUrl ?? null)}
+              />
             )}
             <span className="truncate text-sm font-medium">{tab.title}</span>
           </div>
