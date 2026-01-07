@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased] (Target: 0.2.0)
+## [0.1.1] - 2025-01-07
 
 ### Added
 - **Cross-Device Sync**: Sync groups/tabs via Firebase Realtime Database.
