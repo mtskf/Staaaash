@@ -59,11 +59,12 @@ export function useGroups() {
     };
   }, []);
 
-  const updateGroups = useCallback(async (newGroups: Group[]) => {
+  const updateGroups = useCallback(async (newGroups: Group[]): Promise<boolean> => {
     // Optimistic update with pinned-first sort to maintain invariant
     setGroups(sortPinnedFirst([...newGroups]));
     try {
       await storage.updateGroups(newGroups);
+      return true;
     } catch (error) {
       if (error instanceof StorageQuotaError) {
         toast.error("Storage quota exceeded. Try removing some groups.");
@@ -73,6 +74,7 @@ export function useGroups() {
       // Revert/Reload on error
       const data = await storage.get();
       setGroups(sortPinnedFirst(data.groups));
+      return false;
     }
   }, []);
 
@@ -134,23 +136,28 @@ export function useGroups() {
 
     const nextId = getNextSelectionId(id);
     const newGroups = groups.filter(g => g.id !== id);
-    await updateGroups(newGroups);
+    const success = await updateGroups(newGroups);
     if (nextId) setSelectedId(nextId);
 
-    toast.success(t('group_deleted'), {
-      duration: UNDO_TOAST_DURATION,
-      action: {
-        label: t('undo'),
-        onClick: async () => {
-          // Restore the group at its original position
-          const currentGroups = await storage.get().then(d => d.groups);
-          const restoredGroups = [...currentGroups, groupToRemove];
-          await storage.updateGroups(restoredGroups);
-          setGroups(sortPinnedFirst(restoredGroups));
-          setSelectedId(groupToRemove.id);
+    if (success) {
+      toast.success(t('group_deleted'), {
+        duration: UNDO_TOAST_DURATION,
+        action: {
+          label: t('undo'),
+          onClick: async () => {
+            try {
+              const currentGroups = await storage.get().then(d => d.groups);
+              const restoredGroups = [...currentGroups, groupToRemove];
+              await storage.updateGroups(restoredGroups);
+              setGroups(sortPinnedFirst(restoredGroups));
+              setSelectedId(groupToRemove.id);
+            } catch {
+              toast.error(t('failed_to_restore'));
+            }
+          },
         },
-      },
-    });
+      });
+    }
   }, [groups, updateGroups, getNextSelectionId]);
 
   const removeTab = useCallback(async (groupId: string, tabId: string) => {
@@ -170,30 +177,35 @@ export function useGroups() {
         }
         return g;
     });
-    await updateGroups(newGroups);
+    const success = await updateGroups(newGroups);
     if (nextId) setSelectedId(nextId);
 
-    toast.success(t('tab_deleted'), {
-      duration: UNDO_TOAST_DURATION,
-      action: {
-        label: t('undo'),
-        onClick: async () => {
-          // Restore the tab at its original position
-          const currentGroups = await storage.get().then(d => d.groups);
-          const restoredGroups = currentGroups.map(g => {
-            if (g.id === groupId) {
-              const newItems = [...g.items];
-              newItems.splice(tabIndex, 0, tabToRemove);
-              return { ...g, items: newItems };
+    if (success) {
+      toast.success(t('tab_deleted'), {
+        duration: UNDO_TOAST_DURATION,
+        action: {
+          label: t('undo'),
+          onClick: async () => {
+            try {
+              const currentGroups = await storage.get().then(d => d.groups);
+              const restoredGroups = currentGroups.map(g => {
+                if (g.id === groupId) {
+                  const newItems = [...g.items];
+                  newItems.splice(tabIndex, 0, tabToRemove);
+                  return { ...g, items: newItems };
+                }
+                return g;
+              });
+              await storage.updateGroups(restoredGroups);
+              setGroups(sortPinnedFirst(restoredGroups));
+              setSelectedId(tabToRemove.id);
+            } catch {
+              toast.error(t('failed_to_restore'));
             }
-            return g;
-          });
-          await storage.updateGroups(restoredGroups);
-          setGroups(sortPinnedFirst(restoredGroups));
-          setSelectedId(tabToRemove.id);
+          },
         },
-      },
-    });
+      });
+    }
   }, [groups, updateGroups, getNextSelectionId]);
 
   const restoreGroup = useCallback(async (id: string) => {
