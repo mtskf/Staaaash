@@ -17,7 +17,7 @@ export function formatRelativeTime(timestamp: number): string {
     return t('time_just_now');
   } else if (diff < hour) {
     const mins = Math.floor(diff / minute);
-    return t('time_mins_ago', String(mins));
+    return t(mins === 1 ? 'time_min_ago' : 'time_mins_ago', String(mins));
   } else if (diff < 24 * hour) {
       // Check if it's "Yesterday"
       const date = new Date(timestamp);
@@ -26,7 +26,7 @@ export function formatRelativeTime(timestamp: number): string {
            return t('time_yesterday');
       }
       const hours = Math.floor(diff / hour);
-      return t('time_hours_ago', String(hours));
+      return t(hours === 1 ? 'time_hour_ago' : 'time_hours_ago', String(hours));
   }
 
   // Check if Yesterday (if > 24h but still previous calendar day logic covered above roughly, but let's be strict about "Yesterday")
@@ -41,7 +41,7 @@ export function formatRelativeTime(timestamp: number): string {
 
   if (diff < 7 * day) {
     const days = Math.floor(diff / day);
-    return t('time_days_ago', String(days));
+    return t(days === 1 ? 'time_day_ago' : 'time_days_ago', String(days));
   }
 
   // Otherwise return date format YYYY/MM/DD
