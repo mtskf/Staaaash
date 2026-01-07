@@ -664,7 +664,7 @@ describe('sync status state transitions', () => {
     // Wait for async processing
     await new Promise(resolve => setTimeout(resolve, 10));
 
-    const calls = statusCallback.mock.calls.map((c: [SyncStatus]) => c[0].state);
+    const calls = statusCallback.mock.calls.map((c) => (c[0] as SyncStatus).state);
     expect(calls).toContain('syncing');
     expect(calls).toContain('synced');
   });
@@ -717,7 +717,7 @@ describe('sync status state transitions', () => {
     await new Promise(resolve => setTimeout(resolve, 10));
 
     // Should have error state
-    const calls = statusCallback.mock.calls.map((c: [SyncStatus]) => c[0].state);
+    const calls = statusCallback.mock.calls.map((c) => (c[0] as SyncStatus).state);
     expect(calls).toContain('error');
 
     statusCallback.mockClear();
@@ -731,7 +731,7 @@ describe('sync status state transitions', () => {
     await new Promise(resolve => setTimeout(resolve, 10));
 
     // Should recover to synced
-    const recoveryCalls = statusCallback.mock.calls.map((c: [SyncStatus]) => c[0].state);
+    const recoveryCalls = statusCallback.mock.calls.map((c) => (c[0] as SyncStatus).state);
     expect(recoveryCalls).toContain('synced');
   });
 
@@ -753,9 +753,9 @@ describe('sync status state transitions', () => {
     vi.mocked(chrome.storage.local.set).mockImplementation((data: Record<string, unknown>, callback: () => void) => {
       if (failOnce && data[LOCAL_STORAGE_KEY]) {
         failOnce = false;
-        chrome.runtime.lastError = { message: 'Storage error' };
+        (chrome.runtime as { lastError?: { message: string } }).lastError = { message: 'Storage error' };
         callback();
-        chrome.runtime.lastError = undefined;
+        (chrome.runtime as { lastError?: { message: string } }).lastError = undefined;
         return;
       }
       Object.assign(store, data);
@@ -771,7 +771,7 @@ describe('sync status state transitions', () => {
     await new Promise(resolve => setTimeout(resolve, 10));
 
     // Should have error state
-    let calls = statusCallback.mock.calls.map((c: [SyncStatus]) => c[0].state);
+    let calls = statusCallback.mock.calls.map((c) => (c[0] as SyncStatus).state);
     expect(calls).toContain('error');
 
     statusCallback.mockClear();
@@ -781,7 +781,7 @@ describe('sync status state transitions', () => {
     await new Promise(resolve => setTimeout(resolve, 10));
 
     // Should process and succeed this time
-    calls = statusCallback.mock.calls.map((c: [SyncStatus]) => c[0].state);
+    calls = statusCallback.mock.calls.map((c) => (c[0] as SyncStatus).state);
     expect(calls).toContain('syncing');
     expect(calls).toContain('synced');
   });

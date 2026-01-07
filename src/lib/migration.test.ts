@@ -38,7 +38,8 @@ describe('migrateAddUpdatedAt', () => {
   });
 
   it('initializes updatedAt from createdAt for groups without updatedAt', async () => {
-    const groups: Group[] = [
+    // Intentionally omitting updatedAt to test migration
+    const groups = [
       {
         id: 'g1',
         title: 'Group 1',
@@ -47,8 +48,8 @@ describe('migrateAddUpdatedAt', () => {
         collapsed: false,
         order: 0,
         createdAt: 1000,
-      } as Group,
-    ];
+      },
+    ] as unknown as Group[];
     store[LOCAL_STORAGE_KEY] = groups;
 
     await migrateAddUpdatedAt();
@@ -81,7 +82,8 @@ describe('migrateAddUpdatedAt', () => {
 
   it('skips migration if already migrated', async () => {
     store[MIGRATION_KEY] = true;
-    const groups: Group[] = [
+    // Intentionally omitting updatedAt to test that migration is skipped
+    const groups = [
       {
         id: 'g1',
         title: 'Group 1',
@@ -90,8 +92,8 @@ describe('migrateAddUpdatedAt', () => {
         collapsed: false,
         order: 0,
         createdAt: 1000,
-      } as Group,
-    ];
+      },
+    ] as unknown as Group[];
     store[LOCAL_STORAGE_KEY] = groups;
 
     await migrateAddUpdatedAt();
@@ -118,7 +120,8 @@ describe('migrateAddUpdatedAt', () => {
   });
 
   it('throws error when chrome.runtime.lastError is set', async () => {
-    const groups: Group[] = [
+    // Intentionally omitting updatedAt to test migration with lastError
+    const groups = [
       {
         id: 'g1',
         title: 'Group 1',
@@ -127,8 +130,8 @@ describe('migrateAddUpdatedAt', () => {
         collapsed: false,
         order: 0,
         createdAt: 1000,
-      } as Group,
-    ];
+      },
+    ] as unknown as Group[];
     store[LOCAL_STORAGE_KEY] = groups;
 
     // Mock set to trigger lastError
