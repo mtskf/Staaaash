@@ -35,17 +35,46 @@ Declutter your browser and your mind. Staaaash helps you organize tabs into name
 
 ## ⌨️ Shortcuts
 
+### Global (Chrome)
+
 | Shortcut | Action |
 |:--------:|--------|
 | <kbd>⌥</kbd> <kbd>S</kbd> | Archive all tabs in current window |
 | <kbd>⌥</kbd> <kbd>⇧</kbd> <kbd>S</kbd> | Open collection |
+
+### Navigation & Selection
+
+| Shortcut | Action |
+|:--------:|--------|
+| <kbd>↑</kbd> <kbd>↓</kbd> | Navigate through groups and tabs |
+| <kbd>←</kbd> | Collapse group / Jump to parent group (when tab selected) |
+| <kbd>→</kbd> | Expand group |
+| <kbd>⌘</kbd> <kbd>F</kbd> | Focus search input |
+| <kbd>Esc</kbd> | Clear search / Cancel editing |
+
+### Actions
+
+| Shortcut | Action |
+|:--------:|--------|
 | <kbd>↵</kbd> | Rename selected group |
 | <kbd>⌘</kbd> <kbd>↵</kbd> | Restore selected item |
 | <kbd>⌫</kbd> | Delete selected item |
 | <kbd>P</kbd> | Pin/Unpin selected group |
-| <kbd>Esc</kbd> | Cancel editing |
-| <kbd>↑</kbd> <kbd>↓</kbd> | Navigate through items |
-| <kbd>←</kbd> <kbd>→</kbd> | Collapse / Expand group |
+
+### Reordering
+
+| Shortcut | Action |
+|:--------:|--------|
+| <kbd>⇧</kbd> <kbd>↑</kbd> | Move selected item up |
+| <kbd>⇧</kbd> <kbd>↓</kbd> | Move selected item down |
+
+### Drag & Drop
+
+| Modifier | Action |
+|:--------:|--------|
+| Drag group | Reorder within section |
+| <kbd>⇧</kbd> + Drag group | Merge into target group (deduplicates URLs) |
+| Drag tab | Move tab within or across groups |
 
 ---
 
