@@ -12,7 +12,6 @@
 
 ## Active
 
-- [ ] ⚠️✨[S] Undo削除: グループ/タブ削除後に5秒間「元に戻す」トーストを表示。誤削除防止。
 - [ ] 💡✨[S] Favicon欠落時のフォールバック: `TabCard` で `favIconUrl` が無い/読込エラー時にデフォルトアイコンを表示。
 - [ ] 💡✨[S] 同期ステータス表示: Firebase同期中/完了/エラーを示すインジケータをヘッダーに追加。
 - [ ] 💡🔧[S] i18n残り: `AuthButton.tsx` と `formatRelativeTime` のハードコード文言を `messages.json` へ移行。
@@ -22,6 +21,7 @@
 
 ## ✅ Done
 
+- [x] ⚠️✨[S] Undo削除: グループ/タブ削除後に5秒間「元に戻す」トーストを表示。誤削除防止。
 - [x] ⚠️✨[M] UX強化: Empty state/Pinned/Collections の視覚階層を改善。淡いグラデ/アイコン/カード影でリッチ化。 [PR #53](https://github.com/mtskf/Staaaash/pull/53)
 - [x] 💡🔧[M] テストの `any` 型を適切な型に置換。`GlobalWithChrome`, `ChromeStorageLocal`, `User` 型を追加。 [PR #47](https://github.com/mtskf/Staaaash/pull/47)
 - [x] 💡🐛[S] GroupCard.tsx setTimeout にcleanup関数を追加。メモリリークを防止。

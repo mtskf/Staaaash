@@ -12,7 +12,6 @@ import {
 } from '@dnd-kit/sortable';
 import { createPortal } from 'react-dom';
 import { Pin, FolderOpen } from 'lucide-react';
-import { toast } from 'sonner';
 
 import { t } from '@/lib/i18n';
 import { GroupCard } from './GroupCard';
@@ -109,7 +108,6 @@ export function Dashboard() {
     if (!groupToDelete) return;
     await removeGroup(groupToDelete.id);
     setGroupToDelete(null);
-    toast.success(t('group_deleted'));
   };
 
   const dropAnimation: DropAnimation = {

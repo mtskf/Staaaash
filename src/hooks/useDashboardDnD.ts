@@ -16,7 +16,7 @@ import { mergeGroupsIntoTarget, reorderTabInGroup, moveTabToGroup } from '@/lib/
 
 export function useDashboardDnD(
   groups: Group[],
-  updateGroups: (groups: Group[]) => Promise<void>,
+  updateGroups: (groups: Group[]) => Promise<unknown>,
   shiftPressedRef: React.RefObject<boolean>
 ) {
   const [activeId, setActiveId] = useState<string | null>(null);

@@ -7,7 +7,7 @@ interface UseKeyboardNavProps {
   groups: Group[];
   selectedId: string | null;
   setSelectedId: (id: string | null) => void;
-  updateGroups: (groups: Group[]) => Promise<void>;
+  updateGroups: (groups: Group[]) => Promise<unknown>;
   updateGroupData: (id: string, data: Partial<Group>) => Promise<void>;
   restoreGroup: (id: string) => Promise<void>;
   restoreTab: (groupId: string, tabId: string) => Promise<void>;
