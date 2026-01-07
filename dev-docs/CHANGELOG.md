@@ -12,6 +12,10 @@
 - **Accessibility**: Added `aria-label` to 6 icon buttons in GroupCard and TabCard for better screen reader support ([PR #38](https://github.com/mtskf/Staaaash/pull/38)).
 - **i18n Support**: Added `chrome.i18n` infrastructure, `messages.json`, and replaced hardcoded UI strings with generic `t()` wrapper  ([PR #39](https://github.com/mtskf/Staaaash/pull/39)).
 - **Test Coverage**: Added tests for `useAuth.ts` (8), `GroupCard.tsx` (15), `firebase.ts` (5) - total 108 tests ([PR #44](https://github.com/mtskf/Staaaash/pull/44)).
+- **Visual Hierarchy**: Enhanced Empty state, Pinned groups, and Collections sections with gradients, icons, and card shadows ([PR #53](https://github.com/mtskf/Staaaash/pull/53)).
+- **Undo Delete**: 5-second toast with "Undo" action after group/tab deletion ([PR #54](https://github.com/mtskf/Staaaash/pull/54)).
+- **Favicon Fallback**: Globe icon shown when `favIconUrl` is missing or fails to load; retries on URL change ([PR #55](https://github.com/mtskf/Staaaash/pull/55)).
+- **TabCard Tests**: Added 8 tests for favicon fallback behavior ([PR #55](https://github.com/mtskf/Staaaash/pull/55)).
 
 ### Changed
 - **Sync Architecture**: Switched from Firebase SDK to REST API for MV3 CSP compliance.
