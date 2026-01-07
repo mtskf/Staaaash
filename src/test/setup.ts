@@ -15,6 +15,9 @@ import { vi } from 'vitest';
     create: vi.fn(),
     query: vi.fn(),
   },
+  windows: {
+    create: vi.fn(),
+  },
   runtime: {
     lastError: undefined,
   },
