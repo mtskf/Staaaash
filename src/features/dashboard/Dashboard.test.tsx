@@ -38,6 +38,8 @@ const mockGroup: Group = {
 describe('Dashboard', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Mock scrollIntoView for jsdom
+    Element.prototype.scrollIntoView = vi.fn();
     // Default mock response
     vi.mocked(storage.get).mockResolvedValue({ groups: [] });
   });
@@ -85,10 +87,9 @@ describe('Dashboard', () => {
     const input = screen.getByDisplayValue('Test Group');
     fireEvent.keyDown(input, { key: 'Enter' });
 
-    // Group card should have selection ring (ring-2 ring-primary)
     await waitFor(() => {
       const groupCard = document.getElementById('item-g1');
-      expect(groupCard?.querySelector('.ring-2')).toBeInTheDocument();
+      expect(groupCard?.getAttribute('data-selected')).toBe('true');
     });
   });
 
@@ -107,10 +108,47 @@ describe('Dashboard', () => {
     const input = screen.getByDisplayValue('Test Group');
     fireEvent.keyDown(input, { key: 'Escape' });
 
-    // Group card should have selection ring
     await waitFor(() => {
       const groupCard = document.getElementById('item-g1');
-      expect(groupCard?.querySelector('.ring-2')).toBeInTheDocument();
+      expect(groupCard?.getAttribute('data-selected')).toBe('true');
+    });
+  });
+
+  it('selects group after renaming via blur', async () => {
+    vi.mocked(storage.get).mockResolvedValue({ groups: [mockGroup] });
+    vi.mocked(storage.updateGroups).mockResolvedValue(undefined);
+
+    render(<Dashboard />);
+
+    const groupTitle = await screen.findByText('Test Group');
+    fireEvent.click(groupTitle);
+
+    const input = screen.getByDisplayValue('Test Group');
+    fireEvent.blur(input);
+
+    await waitFor(() => {
+      const groupCard = document.getElementById('item-g1');
+      expect(groupCard?.getAttribute('data-selected')).toBe('true');
+    });
+  });
+
+  it('selects group after starting rename via keyboard', async () => {
+    vi.mocked(storage.get).mockResolvedValue({ groups: [mockGroup] });
+    vi.mocked(storage.updateGroups).mockResolvedValue(undefined);
+
+    render(<Dashboard />);
+
+    await screen.findByText('Test Group');
+
+    fireEvent.keyDown(window, { key: 'ArrowDown' });
+    fireEvent.keyDown(window, { key: 'Enter' });
+
+    const input = await screen.findByDisplayValue('Test Group');
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    await waitFor(() => {
+      const groupCard = document.getElementById('item-g1');
+      expect(groupCard?.getAttribute('data-selected')).toBe('true');
     });
   });
 });
