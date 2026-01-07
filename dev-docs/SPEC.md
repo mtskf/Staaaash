@@ -18,7 +18,7 @@ A modern, minimalist Chrome tab manager that declutters and saves memory by grou
 - **Reordering**: Drag and drop groups to change their order.
 - **Sorting**: New groups are added to the top.
 - **Collapsing**: Collapse/expand groups to save space.
-- **Pinning**: Pin important groups to the separate "Pinned" section at the top.
+- **Pinning**: Pin important groups to the separate "Pinned" section at the top. Pinned items stay in collection when restored.
 - **Merging**: Shift+Drag a group onto another to merge them (duplicates auto-removed).
 - **Search**: Filter groups and tabs by title or URL.
 - **Delete Group**: Remove a group from the list (with confirmation).

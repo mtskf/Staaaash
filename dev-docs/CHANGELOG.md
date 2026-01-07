@@ -4,6 +4,7 @@
 
 ### Added
 - **Sync Status Indicator**: Display Firebase sync state (syncing/synced/error) with icon next to auth button in header ([PR #61](https://github.com/mtskf/Staaaash/pull/61)).
+- **Pinned Items Persist**: Pinned groups and their tabs now stay in collection when restored. Unpinned items behave as before ([PR #64](https://github.com/mtskf/Staaaash/pull/64)).
 
 ### Fixed
 - Fixed deleted group reappearing briefly due to race condition between local write and Firebase sync callback. Added write lock with pending data queue to prevent data loss from concurrent remote updates.

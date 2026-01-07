@@ -177,4 +177,50 @@ describe('useGroups', () => {
     // Group should be removed
     expect(result.current.groups.map((g) => g.id)).toEqual(['g2']);
   });
+
+  it('restores a pinned group but keeps it in collection', async () => {
+    const pinnedGroup: Group = { ...baseGroup, id: 'pinned', pinned: true };
+    vi.mocked(storage.get).mockResolvedValue({ groups: [pinnedGroup, secondGroup] });
+
+    const { result } = renderHook(() => useGroups());
+
+    await waitFor(() => {
+      expect(result.current.groups).toHaveLength(2);
+    });
+
+    await act(async () => {
+      await result.current.restoreGroup('pinned');
+    });
+
+    // Should open a new window
+    expect(chrome.windows.create).toHaveBeenCalledWith({
+      url: ['https://one.test', 'https://two.test'],
+      focused: true,
+    });
+
+    // Pinned group should NOT be removed
+    expect(result.current.groups.map((g) => g.id)).toEqual(['pinned', 'g2']);
+  });
+
+  it('restores a tab from pinned group but keeps it', async () => {
+    const pinnedGroup: Group = { ...baseGroup, id: 'pinned', pinned: true };
+    vi.mocked(storage.get).mockResolvedValue({ groups: [pinnedGroup, secondGroup] });
+
+    const { result } = renderHook(() => useGroups());
+
+    await waitFor(() => {
+      expect(result.current.groups).toHaveLength(2);
+    });
+
+    await act(async () => {
+      await result.current.restoreTab('pinned', 't1');
+    });
+
+    // Should open the tab
+    expect(chrome.tabs.create).toHaveBeenCalledWith({ url: 'https://one.test', active: false });
+
+    // Tab should NOT be removed from pinned group
+    const group = result.current.groups.find((g) => g.id === 'pinned');
+    expect(group?.items.map((t) => t.id)).toEqual(['t1', 't2']);
+  });
 });
