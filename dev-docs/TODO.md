@@ -17,7 +17,6 @@
 - [ ] 💡✨[S] 同期ステータス表示: Firebase同期中/完了/エラーを示すインジケータをヘッダーに追加。
 - [ ] 💡🔧[S] i18n残り: `AuthButton.tsx` と `formatRelativeTime` のハードコード文言を `messages.json` へ移行。
 - [ ] 💡✅[S] `migration.ts` テスト追加: `migrateAddUpdatedAt` の正常/異常パターン。
-- [ ] 💡✨[I] 日本語ロケール: `_locales/ja/messages.json` を追加。
 
 ---
 
