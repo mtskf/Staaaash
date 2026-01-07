@@ -156,4 +156,25 @@ describe('useGroups', () => {
     expect(result.current.groups[0].id).toBe('u2');
     expect(result.current.groups[0].pinned).toBe(true);
   });
+
+  it('restores a group in a new window and removes the group', async () => {
+    const { result } = renderHook(() => useGroups());
+
+    await waitFor(() => {
+      expect(result.current.groups).toHaveLength(2);
+    });
+
+    await act(async () => {
+      await result.current.restoreGroup('g1');
+    });
+
+    // Should open a new window with all tab URLs
+    expect(chrome.windows.create).toHaveBeenCalledWith({
+      url: ['https://one.test', 'https://two.test'],
+      focused: true,
+    });
+
+    // Group should be removed
+    expect(result.current.groups.map((g) => g.id)).toEqual(['g2']);
+  });
 });

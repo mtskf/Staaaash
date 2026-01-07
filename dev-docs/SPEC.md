@@ -7,8 +7,8 @@ A modern, minimalist Chrome tab manager that declutters and saves memory by grou
 ### 1. Tab Management
 - **Save Tabs**: Archive all open tabs (excluding extension pages) into a new group.
 - **Restore Tabs**:
-    - **Group Restore**: Open all tabs in a group via the "Restore" button.
-    - **Individual Restore**: Open single tabs via the external link icon.
+    - **Group Restore**: Open all tabs in a new window via the "Restore" button.
+    - **Individual Restore**: Open single tabs in the active window via the external link icon.
 - **Original Tabs**: Close original tabs after archiving.
 - **Remove Tabs**: Delete individual tabs from a group.
 

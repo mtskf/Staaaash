@@ -4,6 +4,7 @@
 
 ### Fixed
 - Fixed deleted group reappearing briefly due to race condition between local write and Firebase sync callback. Added write lock with pending data queue to prevent data loss from concurrent remote updates.
+- Fixed group restore opening tabs in active window instead of new window. Now uses `chrome.windows.create` to open all tabs in a new window.
 
 ## [0.1.1] - 2025-01-07
 

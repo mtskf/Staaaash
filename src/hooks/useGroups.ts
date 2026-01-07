@@ -213,9 +213,10 @@ export function useGroups() {
     const group = groups.find(g => g.id === id);
     if (!group) return;
 
-    for (const item of group.items) {
-      await chrome.tabs.create({ url: item.url, active: false });
-    }
+    // Open all tabs in a new window
+    const urls = group.items.map(item => item.url);
+    await chrome.windows.create({ url: urls, focused: true });
+
     const newGroups = groups.filter(g => g.id !== id);
     await updateGroups(newGroups);
     if (nextId) setSelectedId(nextId);
