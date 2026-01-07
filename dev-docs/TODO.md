@@ -13,12 +13,12 @@
 ## Active
 
 - [ ] 💡✨[S] 同期ステータス表示: Firebase同期中/完了/エラーを示すインジケータをヘッダーに追加。
-- [ ] 💡✅[S] `migration.ts` テスト追加: `migrateAddUpdatedAt` の正常/異常パターン。
 
 ---
 
 ## ✅ Done
 
+- [x] 💡✅[S] `migration.ts` テスト追加: `migrateAddUpdatedAt` の正常/異常パターン (6 tests)。 [PR #60](https://github.com/mtskf/Staaaash/pull/60)
 - [x] 💡🔧[S] i18n残り: `AuthButton.tsx` と `formatRelativeTime` のハードコード文言を `messages.json` へ移行。 [PR #56](https://github.com/mtskf/Staaaash/pull/56)
 - [x] 💡✨[S] Favicon欠落時のフォールバック: `TabCard` で `favIconUrl` が無い/読込エラー時にデフォルトアイコンを表示。 [PR #55](https://github.com/mtskf/Staaaash/pull/55)
 - [x] ⚠️✨[S] Undo削除: グループ/タブ削除後に5秒間「元に戻す」トーストを表示。誤削除防止。 [PR #54](https://github.com/mtskf/Staaaash/pull/54)
