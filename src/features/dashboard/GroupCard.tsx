@@ -112,7 +112,13 @@ export function GroupCard({
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="flex flex-col" id={`item-${group.id}`}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex flex-col"
+      id={`item-${group.id}`}
+      data-selected={isSelected ? 'true' : 'false'}
+    >
       <Card className={cn(
         "flex flex-col transition-all",
         group.collapsed ? "h-auto" : "h-auto",
