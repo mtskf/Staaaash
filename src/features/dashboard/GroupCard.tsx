@@ -120,9 +120,10 @@ export function GroupCard({
       data-selected={isSelected ? 'true' : 'false'}
     >
       <Card className={cn(
-        "flex flex-col transition-all",
+        "flex flex-col transition-all card-enhanced",
         group.collapsed ? "h-auto" : "h-auto",
-        isSelected && "ring-2 ring-primary border-primary"
+        isSelected && "ring-2 ring-primary border-primary",
+        group.pinned && !isSelected && "card-pinned"
       )}>
         <CardHeader className="p-3 flex flex-row items-center justify-between space-y-0 cursor-default">
           <div className="flex items-center gap-2 flex-1 min-w-0 mr-4">
@@ -222,7 +223,7 @@ export function GroupCard({
           <CardContent className="p-3 pt-2 flex-1 overflow-y-auto flex flex-col gap-2">
             <SortableContext items={group.items.map((t: TabItem) => t.id)} strategy={verticalListSortingStrategy}>
               {group.items.length === 0 ? (
-                 <div className="text-center text-muted-foreground text-xs py-4 border-2 border-dashed rounded-md">
+                 <div className="text-center text-muted-foreground text-xs py-4 border-2 border-dashed rounded-lg drop-zone-enhanced">
                    {t('drop_tabs_here')}
                  </div>
               ) : (

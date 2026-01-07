@@ -154,12 +154,12 @@ export function Dashboard() {
 
       {/* Empty State */}
       {groups.length === 0 && !searchQuery && (
-        <div className="flex flex-col items-center justify-center py-16 text-center animate-in fade-in zoom-in-50 duration-300 slide-in-from-bottom-5">
-           <div className="bg-muted/30 p-4 rounded-full mb-4">
-             <FolderOpen className="h-10 w-10 text-muted-foreground/40" />
+        <div className="empty-state-bg flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in-50 duration-300 slide-in-from-bottom-5 rounded-2xl mx-auto max-w-md">
+           <div className="bg-gradient-to-br from-primary/10 to-primary/5 p-5 rounded-2xl mb-5 shadow-lg shadow-primary/10">
+             <FolderOpen className="h-12 w-12 text-primary/50" />
            </div>
            <h3 className="text-lg font-semibold text-foreground">{t('no_saved_tabs')}</h3>
-           <p className="text-sm text-muted-foreground mt-2 max-w-[300px] leading-relaxed">
+           <p className="text-sm text-muted-foreground mt-2 max-w-[280px] leading-relaxed">
              {t('empty_state_description')}
            </p>
         </div>
@@ -177,7 +177,7 @@ export function Dashboard() {
             {pinnedGroups.length > 0 && (
                 <section className="max-w-3xl mx-auto w-full">
                     <h2 className="text-sm font-semibold text-muted-foreground mb-4 uppercase tracking-wider flex items-center gap-2">
-                        <Pin className="h-4 w-4" />{t('section_pinned')}
+                        <Pin className="h-4 w-4 section-icon-pinned" />{t('section_pinned')}
                     </h2>
                     <SortableContext
                         items={pinnedGroups.map(g => g.id)}
@@ -216,7 +216,7 @@ export function Dashboard() {
              <section className="max-w-3xl mx-auto w-full">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                        <FolderOpen className="h-4 w-4" />{t('section_collections')}
+                        <FolderOpen className="h-4 w-4 section-icon-collection" />{t('section_collections')}
                     </h2>
                 </div>
                  <SortableContext

@@ -78,3 +78,36 @@
     cursor: grabbing !important;
   }
 }
+
+@layer components {
+  /* Empty state gradient background */
+  .empty-state-bg {
+    @apply relative overflow-hidden;
+  }
+  .empty-state-bg::before {
+    content: '';
+    @apply absolute inset-0 rounded-2xl pointer-events-none;
+    background: radial-gradient(ellipse at center, hsl(var(--primary) / 0.06) 0%, transparent 70%);
+  }
+
+  /* Section header icon styles */
+  .section-icon-pinned {
+    @apply text-amber-500 drop-shadow-sm;
+  }
+  .section-icon-collection {
+    @apply text-primary/70;
+  }
+
+  /* Card enhancements */
+  .card-enhanced {
+    @apply shadow-sm hover:shadow-md transition-shadow;
+  }
+  .card-pinned {
+    @apply ring-1 ring-amber-200/50 dark:ring-amber-500/20;
+  }
+
+  /* Drop zone gradient */
+  .drop-zone-enhanced {
+    background: linear-gradient(135deg, hsl(var(--muted) / 0.5) 0%, hsl(var(--muted) / 0.2) 100%);
+  }
+}
