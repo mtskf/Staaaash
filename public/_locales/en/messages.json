@@ -42,5 +42,19 @@
   "import_success": {
     "message": "Imported $1 groups successfully!",
     "placeholders": { "1": { "content": "$1" } }
-  }
+  },
+  "time_just_now": { "message": "Just now" },
+  "time_mins_ago": {
+    "message": "$1 min ago",
+    "placeholders": { "1": { "content": "$1" } }
+  },
+  "time_hours_ago": {
+    "message": "$1 hour ago",
+    "placeholders": { "1": { "content": "$1" } }
+  },
+  "time_days_ago": {
+    "message": "$1 day ago",
+    "placeholders": { "1": { "content": "$1" } }
+  },
+  "time_yesterday": { "message": "Yesterday" }
 }

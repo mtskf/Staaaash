@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { t } from './i18n';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -13,19 +14,19 @@ export function formatRelativeTime(timestamp: number): string {
   const day = 24 * hour;
 
   if (diff < minute) {
-    return 'Just now';
+    return t('time_just_now');
   } else if (diff < hour) {
     const mins = Math.floor(diff / minute);
-    return `${mins} min${mins > 1 ? 's' : ''} ago`;
+    return t('time_mins_ago', String(mins));
   } else if (diff < 24 * hour) {
       // Check if it's "Yesterday"
       const date = new Date(timestamp);
       const today = new Date();
       if (date.getDate() !== today.getDate()) {
-           return 'Yesterday';
+           return t('time_yesterday');
       }
       const hours = Math.floor(diff / hour);
-      return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+      return t('time_hours_ago', String(hours));
   }
 
   // Check if Yesterday (if > 24h but still previous calendar day logic covered above roughly, but let's be strict about "Yesterday")
@@ -35,12 +36,12 @@ export function formatRelativeTime(timestamp: number): string {
   yesterday.setDate(yesterday.getDate() - 1);
 
   if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
+      return t('time_yesterday');
   }
 
   if (diff < 7 * day) {
     const days = Math.floor(diff / day);
-    return `${days} day${days > 1 ? 's' : ''} ago`;
+    return t('time_days_ago', String(days));
   }
 
   // Otherwise return date format YYYY/MM/DD
