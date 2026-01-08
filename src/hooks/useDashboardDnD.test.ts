@@ -5,6 +5,7 @@ import type { Group } from '@/types';
 import type { DragEndEvent } from '@dnd-kit/core';
 import * as logic from '@/lib/logic';
 import { storage } from '@/lib/storage';
+import { toast } from 'sonner';
 
 // Mock logic functions
 vi.mock('@/lib/logic', () => ({
@@ -17,6 +18,13 @@ vi.mock('@/lib/logic', () => ({
 vi.mock('@/lib/storage', () => ({
   storage: {
     get: vi.fn(),
+  },
+}));
+
+// Mock sonner
+vi.mock('sonner', () => ({
+  toast: {
+    error: vi.fn(),
   },
 }));
 
@@ -268,6 +276,7 @@ describe('useDashboardDnD', () => {
 
       expect(logic.mergeGroupsIntoTarget).not.toHaveBeenCalled();
       expect(mockUpdateGroups).not.toHaveBeenCalled();
+      expect(toast.error).toHaveBeenCalled();
     });
 
     it('aborts merge when target is missing from storage', async () => {
@@ -289,6 +298,7 @@ describe('useDashboardDnD', () => {
 
       expect(logic.mergeGroupsIntoTarget).not.toHaveBeenCalled();
       expect(mockUpdateGroups).not.toHaveBeenCalled();
+      expect(toast.error).toHaveBeenCalled();
     });
 
     it('falls back to props when storage.get fails', async () => {
