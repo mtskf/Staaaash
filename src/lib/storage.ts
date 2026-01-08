@@ -118,6 +118,11 @@ async function processRemoteData(firebaseGroups: Group[]): Promise<void> {
     const hasLocalDeletions = firebaseGroups.some(g => !mergedIds.has(g.id));
     const needsFirebaseSync = newLocalGroups.length > 0 || hasLocalDeletions;
 
+    // Notify all subscribers with merged data immediately (optimistic update)
+    for (const callback of syncCallbacks) {
+      callback(mergedGroups);
+    }
+
     // 6. Update Base (Last Synced) - timing depends on whether Firebase sync is needed
     // If sync is needed, delay Base update until sync succeeds to ensure retry on failure
     if (needsFirebaseSync) {
@@ -126,6 +131,10 @@ async function processRemoteData(firebaseGroups: Group[]): Promise<void> {
       // Note: .catch captures errors from both syncToFirebase AND saveLastSynced
       syncToFirebase(mergedGroups)
         .then(() => saveLastSynced(mergedGroups))
+        .then(() => {
+          // Only notify synced after Firebase sync succeeds
+          notifySyncStatus({ state: 'synced', error: null });
+        })
         .catch((error) => {
           console.warn('Sync failed (will retry on next sync):', error);
           notifySyncStatus({ state: 'error', error: String(error) });
@@ -136,15 +145,9 @@ async function processRemoteData(firebaseGroups: Group[]): Promise<void> {
     } else {
       // No sync needed - safe to update Base immediately
       await saveLastSynced(mergedGroups);
+      // Notify synced state
+      notifySyncStatus({ state: 'synced', error: null });
     }
-
-    // Notify all subscribers
-    for (const callback of syncCallbacks) {
-      callback(mergedGroups);
-    }
-
-    // Notify synced state on success
-    notifySyncStatus({ state: 'synced', error: null });
   } catch (e) {
     // Reset hash so next poll will retry processing
     lastRemoteDataHash = null;
