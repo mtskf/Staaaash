@@ -13,6 +13,7 @@ import {
 } from '@dnd-kit/sortable';
 import type { Group, TabItem } from '@/types';
 import { mergeGroupsIntoTarget, reorderTabInGroup, moveTabToGroup } from '@/lib/logic';
+import { storage } from '@/lib/storage';
 
 export function useDashboardDnD(
   groups: Group[],
@@ -74,9 +75,30 @@ export function useDashboardDnD(
 
         if (targetGroupId && active.id !== targetGroupId) {
             if (shiftPressedRef.current) {
-                // Merge Groups
-                const newGroups = mergeGroupsIntoTarget(groups, active.id as string, targetGroupId);
-                if (newGroups !== groups) {
+                // Merge Groups - fetch latest state to avoid race condition with Firebase sync
+                let currentGroups: Group[];
+                try {
+                    currentGroups = await storage.get().then(d => d.groups);
+                } catch {
+                    console.warn('[DnD] storage.get failed, using props');
+                    currentGroups = groups;
+                }
+
+                // Safety guard: verify source and target exist in fresh data
+                const sourceExists = currentGroups.some(g => g.id === active.id);
+                const targetExists = currentGroups.some(g => g.id === targetGroupId);
+                if (!sourceExists || !targetExists) {
+                    console.warn('[DnD] Source or target missing in storage, aborting merge', {
+                        sourceId: active.id,
+                        targetId: targetGroupId,
+                        sourceExists,
+                        targetExists
+                    });
+                    return;
+                }
+
+                const newGroups = mergeGroupsIntoTarget(currentGroups, active.id as string, targetGroupId);
+                if (newGroups !== currentGroups) {
                     await updateGroups(newGroups);
                 }
             } else if (overType === 'Group') {

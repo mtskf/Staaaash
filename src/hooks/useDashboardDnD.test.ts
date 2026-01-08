@@ -4,12 +4,20 @@ import { useDashboardDnD } from './useDashboardDnD';
 import type { Group } from '@/types';
 import type { DragEndEvent } from '@dnd-kit/core';
 import * as logic from '@/lib/logic';
+import { storage } from '@/lib/storage';
 
 // Mock logic functions
 vi.mock('@/lib/logic', () => ({
   mergeGroupsIntoTarget: vi.fn((groups) => groups),
   reorderTabInGroup: vi.fn((groups) => groups),
   moveTabToGroup: vi.fn((groups) => groups),
+}));
+
+// Mock storage
+vi.mock('@/lib/storage', () => ({
+  storage: {
+    get: vi.fn(),
+  },
 }));
 
 const mockGroup1: Group = {
@@ -45,6 +53,8 @@ describe('useDashboardDnD', () => {
     vi.clearAllMocks();
     mockUpdateGroups = vi.fn().mockResolvedValue(undefined) as (groups: Group[]) => Promise<void>;
     shiftPressedRef = { current: false };
+    // Default: storage returns the same groups as props
+    vi.mocked(storage.get).mockResolvedValue({ groups: [mockGroup1, mockGroup2] });
   });
 
   it('returns sensors and handlers', () => {
@@ -171,6 +181,9 @@ describe('useDashboardDnD', () => {
 
     shiftPressedRef = { current: true };
 
+    // Mock storage to return the groups
+    vi.mocked(storage.get).mockResolvedValue({ groups: [pinnedGroup, unpinnedGroup] });
+
     // Mock mergeGroupsIntoTarget to return a new array (simulating source removal)
     const mergedGroups = [{ ...unpinnedGroup, items: [...unpinnedGroup.items, ...pinnedGroup.items] }];
     vi.mocked(logic.mergeGroupsIntoTarget).mockReturnValue(mergedGroups);
@@ -192,11 +205,117 @@ describe('useDashboardDnD', () => {
       } as unknown as DragEndEvent);
     });
 
+    expect(storage.get).toHaveBeenCalled();
     expect(logic.mergeGroupsIntoTarget).toHaveBeenCalledWith(
       [pinnedGroup, unpinnedGroup],
       'pinned',
       'unpinned'
     );
     expect(mockUpdateGroups).toHaveBeenCalledWith(mergedGroups);
+  });
+
+  describe('race condition prevention', () => {
+    it('uses fresh groups from storage for merge', async () => {
+      const propsGroups = [mockGroup1, mockGroup2];
+      // Storage has an updated version with an extra tab
+      const freshGroup1 = {
+        ...mockGroup1,
+        items: [...mockGroup1.items, { id: 't-new', title: 'New Tab', url: 'https://new.test' }],
+      };
+      const storageGroups = [freshGroup1, mockGroup2];
+
+      vi.mocked(storage.get).mockResolvedValue({ groups: storageGroups });
+      const mergedGroups = [{ ...mockGroup2, items: [...mockGroup2.items, ...freshGroup1.items] }];
+      vi.mocked(logic.mergeGroupsIntoTarget).mockReturnValue(mergedGroups);
+
+      shiftPressedRef = { current: true };
+
+      const { result } = renderHook(() =>
+        useDashboardDnD(propsGroups, mockUpdateGroups, shiftPressedRef)
+      );
+
+      await act(async () => {
+        await result.current.handleDragEnd({
+          active: { id: 'g1', data: { current: { type: 'Group' } } },
+          over: { id: 'g2', data: { current: { type: 'Group' } } },
+        } as unknown as DragEndEvent);
+      });
+
+      // Should use storage groups (freshGroup1), not props groups (mockGroup1)
+      expect(logic.mergeGroupsIntoTarget).toHaveBeenCalledWith(
+        storageGroups,
+        'g1',
+        'g2'
+      );
+    });
+
+    it('aborts merge when source is missing from storage', async () => {
+      // Storage only has mockGroup2 (mockGroup1 was deleted)
+      vi.mocked(storage.get).mockResolvedValue({ groups: [mockGroup2] });
+
+      shiftPressedRef = { current: true };
+
+      const { result } = renderHook(() =>
+        useDashboardDnD([mockGroup1, mockGroup2], mockUpdateGroups, shiftPressedRef)
+      );
+
+      await act(async () => {
+        await result.current.handleDragEnd({
+          active: { id: 'g1', data: { current: { type: 'Group' } } },
+          over: { id: 'g2', data: { current: { type: 'Group' } } },
+        } as unknown as DragEndEvent);
+      });
+
+      expect(logic.mergeGroupsIntoTarget).not.toHaveBeenCalled();
+      expect(mockUpdateGroups).not.toHaveBeenCalled();
+    });
+
+    it('aborts merge when target is missing from storage', async () => {
+      // Storage only has mockGroup1 (mockGroup2 was deleted)
+      vi.mocked(storage.get).mockResolvedValue({ groups: [mockGroup1] });
+
+      shiftPressedRef = { current: true };
+
+      const { result } = renderHook(() =>
+        useDashboardDnD([mockGroup1, mockGroup2], mockUpdateGroups, shiftPressedRef)
+      );
+
+      await act(async () => {
+        await result.current.handleDragEnd({
+          active: { id: 'g1', data: { current: { type: 'Group' } } },
+          over: { id: 'g2', data: { current: { type: 'Group' } } },
+        } as unknown as DragEndEvent);
+      });
+
+      expect(logic.mergeGroupsIntoTarget).not.toHaveBeenCalled();
+      expect(mockUpdateGroups).not.toHaveBeenCalled();
+    });
+
+    it('falls back to props when storage.get fails', async () => {
+      vi.mocked(storage.get).mockRejectedValue(new Error('Storage error'));
+      const mergedGroups = [{ ...mockGroup2, items: [...mockGroup2.items, ...mockGroup1.items] }];
+      vi.mocked(logic.mergeGroupsIntoTarget).mockReturnValue(mergedGroups);
+
+      shiftPressedRef = { current: true };
+
+      const { result } = renderHook(() =>
+        useDashboardDnD([mockGroup1, mockGroup2], mockUpdateGroups, shiftPressedRef)
+      );
+
+      await act(async () => {
+        await result.current.handleDragEnd({
+          active: { id: 'g1', data: { current: { type: 'Group' } } },
+          over: { id: 'g2', data: { current: { type: 'Group' } } },
+        } as unknown as DragEndEvent);
+      });
+
+      // Should fall back to props groups
+      expect(logic.mergeGroupsIntoTarget).toHaveBeenCalledWith(
+        [mockGroup1, mockGroup2],
+        'g1',
+        'g2'
+      );
+      expect(mockUpdateGroups).toHaveBeenCalledWith(mergedGroups);
+    });
   });
 });
