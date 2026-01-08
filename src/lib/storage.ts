@@ -113,9 +113,15 @@ async function processRemoteData(firebaseGroups: Group[]): Promise<void> {
     // 5. Update Base (Last Synced) to match the new committed state
     await saveLastSynced(mergedGroups);
 
-    // 6. If there were newly created local groups, sync them to Firebase
+    // 6. If there were local changes that need to be synced to Firebase
+    // This includes:
+    // - Newly created local groups (newLocalGroups.length > 0)
+    // - Local deletions (groups in remote but not in merged result)
     // Fire-and-forget: errors are logged but don't block the sync flow
-    if (newLocalGroups.length > 0) {
+    const mergedIds = new Set(mergedGroups.map(g => g.id));
+    const hasLocalDeletions = firebaseGroups.some(g => !mergedIds.has(g.id));
+
+    if (newLocalGroups.length > 0 || hasLocalDeletions) {
       syncToFirebase(mergedGroups).catch((error) => {
         console.warn('Firebase sync failed (will retry on next sync):', error);
         notifySyncStatus({ state: 'error', error: String(error) });
