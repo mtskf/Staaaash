@@ -71,5 +71,6 @@
   "time_yesterday": { "message": "Yesterday" },
   "sync_syncing": { "message": "Syncing..." },
   "sync_synced": { "message": "Synced" },
-  "sync_error": { "message": "Sync error" }
+  "sync_error": { "message": "Sync error" },
+  "merge_failed": { "message": "Merge failed: group was modified" }
 }

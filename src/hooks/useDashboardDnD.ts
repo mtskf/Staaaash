@@ -11,9 +11,11 @@ import {
   arrayMove,
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
+import { toast } from 'sonner';
 import type { Group, TabItem } from '@/types';
 import { mergeGroupsIntoTarget, reorderTabInGroup, moveTabToGroup } from '@/lib/logic';
 import { storage } from '@/lib/storage';
+import { t } from '@/lib/i18n';
 
 export function useDashboardDnD(
   groups: Group[],
@@ -94,6 +96,7 @@ export function useDashboardDnD(
                         sourceExists,
                         targetExists
                     });
+                    toast.error(t('merge_failed'));
                     return;
                 }
 
