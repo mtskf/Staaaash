@@ -12,11 +12,13 @@
 
 ## Active
 
-- [ ] ⚠️🐛[?] Pinnedされたグループを削除すると一旦消えて、すぐに復活して、またすぐ消えるという変な動作になる。
+_No active items_
 
 ---
 
 ## ✅ Done
+
+- [x] ⚠️🐛[S] Pinnedグループ削除時のフリッカー修正: storage.setでBase更新をFirebase sync完了後に移動。3-way mergeが削除を正しく検出できるように。[PR #67](https://github.com/mtskf/Staaaash/pull/67)
 
 - [x] ⚠️🔧[S] PIN操作時のグループ位置: PinしたらPINNEDリストの最後に、Unpinしたらコレクションのトップに追加。[PR #66](https://github.com/mtskf/Staaaash/pull/66)
 - [x] ⚠️🐛[M] PINされたグループをマージしたらマージ元が削除されない: 3-way mergeでLocal Deletionを検出し、Firebaseに反映。[PR #65](https://github.com/mtskf/Staaaash/pull/65)

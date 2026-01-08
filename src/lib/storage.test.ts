@@ -151,7 +151,9 @@ describe('storage', () => {
 
     // Local storage should have the data
     expect(store[LOCAL_STORAGE_KEY]).toEqual(groups);
-    expect(store[LAST_SYNCED_KEY]).toEqual(groups);
+    // LAST_SYNCED_KEY (Base) is NOT updated when Firebase sync fails
+    // This ensures 3-way merge will retry the sync on next Firebase callback
+    expect(store[LAST_SYNCED_KEY]).toBeUndefined();
 
     // Warning should be logged
     expect(consoleSpy).toHaveBeenCalledWith(
@@ -820,6 +822,76 @@ describe('sync status state transitions', () => {
     // Should recover to synced
     const recoveryCalls = statusCallback.mock.calls.map((c) => (c[0] as SyncStatus).state);
     expect(recoveryCalls).toContain('synced');
+  });
+
+  it('does not restore deleted groups when stale Firebase data arrives during write', async () => {
+    // This test reproduces the "flicker" bug where deleted groups momentarily reappear:
+    // 1. User deletes group G locally
+    // 2. storage.set saves to local AND updates Base immediately (before Firebase sync)
+    // 3. Stale Firebase data arrives with G still present
+    // 4. BUG: 3-way merge sees G in remote but NOT in Base (just updated) → treats as "new remote group"
+    // 5. G gets restored, then eventually deleted again when Firebase sync completes → flicker
+
+    const statusCallback = vi.fn();
+    const groupCallback = vi.fn();
+
+    vi.mocked(getCurrentUser).mockReturnValue({ uid: 'test-user' } as User);
+
+    // Control when Firebase sync completes
+    let resolveFirebaseSync: (() => void) | null = null;
+    vi.mocked(saveGroupsToFirebase).mockImplementation(() => {
+      return new Promise<void>((resolve) => {
+        resolveFirebaseSync = resolve;
+      });
+    });
+
+    storageModule.subscribeSyncStatus(statusCallback);
+    storageModule.initFirebaseSync(groupCallback);
+
+    // Login
+    authCallback?.({ uid: 'test-user' } as User);
+
+    // Initial state: group G exists everywhere
+    const groupG = mockGroup('g-deleted', 'Group to be deleted');
+    const groupOther = mockGroup('g-other', 'Other group');
+    store[LOCAL_STORAGE_KEY] = [groupG, groupOther];
+    store[LAST_SYNCED_KEY] = [groupG, groupOther];
+
+    groupCallback.mockClear();
+
+    // User deletes group G locally
+    await storageModule.storage.updateGroups([groupOther]); // Only groupOther remains
+
+    // Local storage should now only have groupOther
+    expect((store[LOCAL_STORAGE_KEY] as Group[]).some(g => g.id === 'g-deleted')).toBe(false);
+
+    // Stale Firebase data arrives while Firebase sync is still pending
+    // This contains the deleted group G
+    firebaseCallback?.([groupG, groupOther]);
+
+    // Wait for pending data to be processed
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    // BUG CHECK: The deleted group G should NOT be restored
+    // If Base was updated before Firebase sync, 3-way merge would see:
+    //   Local: [groupOther], Remote: [groupG, groupOther], Base: [groupOther] (just updated)
+    //   → groupG is in Remote but NOT in Base → "new remote group" → RESTORED (wrong!)
+    //
+    // CORRECT behavior: groupG should stay deleted
+    //   Base should still be [groupG, groupOther] until Firebase sync succeeds
+    //   → groupG was in Base but NOT in Local → "local deletion" → stays deleted
+    const finalGroups = store[LOCAL_STORAGE_KEY] as Group[];
+    expect(finalGroups.some(g => g.id === 'g-deleted')).toBe(false);
+    expect(finalGroups.some(g => g.id === 'g-other')).toBe(true);
+
+    // Also verify the callback wasn't called with the deleted group restored
+    const allCallArgs = groupCallback.mock.calls.map(c => c[0] as Group[]);
+    for (const groups of allCallArgs) {
+      expect(groups.some(g => g.id === 'g-deleted')).toBe(false);
+    }
+
+    // Cleanup: resolve pending Firebase sync
+    resolveFirebaseSync?.();
   });
 
   it('resets hash on processRemoteData failure so retry works', async () => {

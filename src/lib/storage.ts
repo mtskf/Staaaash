@@ -385,20 +385,23 @@ export const storage = {
         // Save to local storage first (this is the primary operation)
         await saveToLocal(data.groups);
 
-        // Only update Base and sync to Firebase if user is authenticated
+        // Only sync to Firebase if user is authenticated
         // This prevents groups created before login from being marked as "synced"
         // which would cause them to be deleted during 3-way merge when Firebase returns empty
         const user = getCurrentUser();
         if (user) {
-          await saveLastSynced(data.groups);
           // Reset hash so next Firebase callback processes the update after our sync
           lastRemoteDataHash = null;
           // Sync to Firebase in background (fire-and-forget)
-          // Errors are logged but don't block local operations
-          syncToFirebase(data.groups).catch((error) => {
-            console.warn('Firebase sync failed (will retry on next sync):', error);
-            notifySyncStatus({ state: 'error', error: String(error) });
-          });
+          // Base is updated ONLY after Firebase sync succeeds to prevent flicker bug:
+          // If Base is updated before Firebase has the data, stale Firebase callbacks
+          // would treat deleted items as "new remote groups" and restore them
+          syncToFirebase(data.groups)
+            .then(() => saveLastSynced(data.groups))
+            .catch((error) => {
+              console.warn('Firebase sync failed (will retry on next sync):', error);
+              notifySyncStatus({ state: 'error', error: String(error) });
+            });
         }
       } finally {
         // Clear write lock after all synchronous operations complete
