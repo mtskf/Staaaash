@@ -110,24 +110,31 @@ async function processRemoteData(firebaseGroups: Group[]): Promise<void> {
     // 4. Save merged result to local
     await saveToLocal(mergedGroups);
 
-    // 5. Update Base (Last Synced) to match the new committed state
-    await saveLastSynced(mergedGroups);
-
-    // 6. If there were local changes that need to be synced to Firebase
+    // 5. Check if Firebase sync is needed
     // This includes:
     // - Newly created local groups (newLocalGroups.length > 0)
     // - Local deletions (groups in remote but not in merged result)
-    // Fire-and-forget: errors are logged but don't block the sync flow
     const mergedIds = new Set(mergedGroups.map(g => g.id));
     const hasLocalDeletions = firebaseGroups.some(g => !mergedIds.has(g.id));
+    const needsFirebaseSync = newLocalGroups.length > 0 || hasLocalDeletions;
 
-    if (newLocalGroups.length > 0 || hasLocalDeletions) {
-      syncToFirebase(mergedGroups).catch((error) => {
-        console.warn('Firebase sync failed (will retry on next sync):', error);
-        notifySyncStatus({ state: 'error', error: String(error) });
-        // Reset hash so next poll will retry the sync
-        lastRemoteDataHash = null;
-      });
+    // 6. Update Base (Last Synced) - timing depends on whether Firebase sync is needed
+    // If sync is needed, delay Base update until sync succeeds to ensure retry on failure
+    if (needsFirebaseSync) {
+      // Sync to Firebase, then update Base on success
+      // If sync fails, Base stays unchanged so next processRemoteData can detect same changes
+      syncToFirebase(mergedGroups)
+        .then(() => saveLastSynced(mergedGroups))
+        .catch((error) => {
+          console.warn('Firebase sync failed (will retry on next sync):', error);
+          notifySyncStatus({ state: 'error', error: String(error) });
+          // Reset hash so next poll will retry the sync
+          // Base is NOT updated, so 3-way merge will detect the same local changes
+          lastRemoteDataHash = null;
+        });
+    } else {
+      // No sync needed - safe to update Base immediately
+      await saveLastSynced(mergedGroups);
     }
 
     // Notify all subscribers

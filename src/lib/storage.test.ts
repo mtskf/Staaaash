@@ -467,6 +467,64 @@ describe('Firebase sync during local write', () => {
     expect(syncedGroups.some(g => g.id === 'g-a')).toBe(true);
     expect(syncedGroups.some(g => g.id === 'g-b')).toBe(false);
   });
+
+  it('does not update Base when Firebase sync fails for local deletions', async () => {
+    const syncCallback = vi.fn();
+    initFirebaseSyncFn(syncCallback);
+
+    authCallback?.({ uid: 'test-user' } as User);
+
+    // Initial state: group A and B exist in base
+    const groupA = mockGroup('g-a', 'Group A');
+    const groupB = mockGroup('g-b', 'Group B');
+    store[LOCAL_STORAGE_KEY] = [groupA]; // Group B was deleted locally
+    store[LAST_SYNCED_KEY] = [groupA, groupB]; // Base still has both
+
+    // Make Firebase sync fail
+    vi.mocked(saveGroupsToFirebase).mockRejectedValue(new Error('Network error'));
+
+    // Firebase still has both groups
+    firebaseCallback?.([groupA, groupB]);
+
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    // Sync was attempted but failed
+    expect(saveGroupsToFirebase).toHaveBeenCalled();
+
+    // Base should NOT be updated (still has both groups) so retry can detect deletion
+    const base = store[LAST_SYNCED_KEY] as Group[];
+    expect(base.some(g => g.id === 'g-a')).toBe(true);
+    expect(base.some(g => g.id === 'g-b')).toBe(true);
+  });
+
+  it('updates Base after successful Firebase sync for local deletions', async () => {
+    const syncCallback = vi.fn();
+    initFirebaseSyncFn(syncCallback);
+
+    authCallback?.({ uid: 'test-user' } as User);
+
+    // Initial state: group A and B exist in base
+    const groupA = mockGroup('g-a', 'Group A');
+    const groupB = mockGroup('g-b', 'Group B');
+    store[LOCAL_STORAGE_KEY] = [groupA]; // Group B was deleted locally
+    store[LAST_SYNCED_KEY] = [groupA, groupB]; // Base still has both
+
+    // Make Firebase sync succeed
+    vi.mocked(saveGroupsToFirebase).mockResolvedValue();
+
+    // Firebase still has both groups
+    firebaseCallback?.([groupA, groupB]);
+
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    // Sync was successful
+    expect(saveGroupsToFirebase).toHaveBeenCalled();
+
+    // Base should be updated (only has group A)
+    const base = store[LAST_SYNCED_KEY] as Group[];
+    expect(base.some(g => g.id === 'g-a')).toBe(true);
+    expect(base.some(g => g.id === 'g-b')).toBe(false);
+  });
 });
 
 describe('subscribeSyncStatus', () => {
