@@ -7,6 +7,8 @@
 - **Pinned Items Persist**: Pinned groups and their tabs now stay in collection when restored. Unpinned items behave as before ([PR #64](https://github.com/mtskf/Staaaash/pull/64)).
 
 ### Fixed
+- Fixed tab loss during group merge when Firebase sync updates state mid-drag. Now fetches fresh data from `storage.get()` before merge and aborts with toast notification if source/target group is missing ([PR #68](https://github.com/mtskf/Staaaash/pull/68)).
+- Fixed deleted pinned group reappearing briefly due to race between local write and Firebase sync. Delayed Base update until after Firebase sync completes ([PR #67](https://github.com/mtskf/Staaaash/pull/67)).
 - Fixed deleted group reappearing briefly due to race condition between local write and Firebase sync callback. Added write lock with pending data queue to prevent data loss from concurrent remote updates.
 - Fixed group restore opening tabs in active window instead of new window. Now uses `chrome.windows.create` to open all tabs in a new window.
 - Fixed `processRemoteData` not resetting hash on failure, causing retry to be skipped ([PR #61](https://github.com/mtskf/Staaaash/pull/61)).
