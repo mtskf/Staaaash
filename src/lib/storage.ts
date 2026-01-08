@@ -123,10 +123,11 @@ async function processRemoteData(firebaseGroups: Group[]): Promise<void> {
     if (needsFirebaseSync) {
       // Sync to Firebase, then update Base on success
       // If sync fails, Base stays unchanged so next processRemoteData can detect same changes
+      // Note: .catch captures errors from both syncToFirebase AND saveLastSynced
       syncToFirebase(mergedGroups)
         .then(() => saveLastSynced(mergedGroups))
         .catch((error) => {
-          console.warn('Firebase sync failed (will retry on next sync):', error);
+          console.warn('Sync failed (will retry on next sync):', error);
           notifySyncStatus({ state: 'error', error: String(error) });
           // Reset hash so next poll will retry the sync
           // Base is NOT updated, so 3-way merge will detect the same local changes
