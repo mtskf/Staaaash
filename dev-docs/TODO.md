@@ -21,6 +21,7 @@
 
 ## ✅ Done
 
+- [x] ⚠️🐛[M] PINされたグループをマージしたらマージ元が削除されない: 3-way mergeでLocal Deletionを検出し、Firebaseに反映。[PR #65](https://github.com/mtskf/Staaaash/pull/65)
 - [x] 💡✨[S] PINしたアイテムはリストアしてもCollectionに残る。[PR #64](https://github.com/mtskf/Staaaash/pull/64)
 - [x] 💡✨[S] 同期ステータス表示: Firebase同期中/完了/エラーを示すインジケータをヘッダーに追加。[PR #61](https://github.com/mtskf/Staaaash/pull/61)
 
