@@ -3,6 +3,7 @@ import { renderHook, act } from '@testing-library/react';
 import { useDashboardDnD } from './useDashboardDnD';
 import type { Group } from '@/types';
 import type { DragEndEvent } from '@dnd-kit/core';
+import * as logic from '@/lib/logic';
 
 // Mock logic functions
 vi.mock('@/lib/logic', () => ({
@@ -144,5 +145,58 @@ describe('useDashboardDnD', () => {
     });
 
     expect(mockUpdateGroups).not.toHaveBeenCalled();
+  });
+
+  it('calls mergeGroupsIntoTarget when shift is pressed during group drag', async () => {
+    const pinnedGroup: Group = {
+      id: 'pinned',
+      title: 'Pinned Group',
+      items: [{ id: 't1', title: 'Tab 1', url: 'https://one.test' }],
+      pinned: true,
+      collapsed: false,
+      order: 0,
+      createdAt: 1,
+      updatedAt: 1,
+    };
+    const unpinnedGroup: Group = {
+      id: 'unpinned',
+      title: 'Unpinned Group',
+      items: [{ id: 't2', title: 'Tab 2', url: 'https://two.test' }],
+      pinned: false,
+      collapsed: false,
+      order: 1,
+      createdAt: 2,
+      updatedAt: 2,
+    };
+
+    shiftPressedRef = { current: true };
+
+    // Mock mergeGroupsIntoTarget to return a new array (simulating source removal)
+    const mergedGroups = [{ ...unpinnedGroup, items: [...unpinnedGroup.items, ...pinnedGroup.items] }];
+    vi.mocked(logic.mergeGroupsIntoTarget).mockReturnValue(mergedGroups);
+
+    const { result } = renderHook(() =>
+      useDashboardDnD([pinnedGroup, unpinnedGroup], mockUpdateGroups, shiftPressedRef)
+    );
+
+    await act(async () => {
+      await result.current.handleDragEnd({
+        active: {
+          id: 'pinned',
+          data: { current: { type: 'Group' } },
+        },
+        over: {
+          id: 'unpinned',
+          data: { current: { type: 'Group' } },
+        },
+      } as unknown as DragEndEvent);
+    });
+
+    expect(logic.mergeGroupsIntoTarget).toHaveBeenCalledWith(
+      [pinnedGroup, unpinnedGroup],
+      'pinned',
+      'unpinned'
+    );
+    expect(mockUpdateGroups).toHaveBeenCalledWith(mergedGroups);
   });
 });

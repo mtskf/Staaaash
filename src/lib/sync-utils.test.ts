@@ -53,6 +53,23 @@ describe('mergeGroups (3-way merge)', () => {
     expect(newLocalGroups).toEqual([]);
   });
 
+  it('should detect Local Deletion (Local missing, Remote present, Base present)', () => {
+    const group1 = createGroup('1');
+    const group2 = createGroup('2');
+
+    // Group 2 was deleted locally but still exists in remote (sync not yet complete)
+    const local = [group1];
+    const remote = [group1, group2];
+    const base = [group1, group2];
+
+    const { mergedGroups, newLocalGroups } = mergeGroupsThreeWay(local, remote, base);
+
+    // Group 2 should be removed (local deletion wins)
+    expect(mergedGroups).toHaveLength(1);
+    expect(mergedGroups[0].id).toBe('1');
+    expect(newLocalGroups).toEqual([]);
+  });
+
   it('should detect Local Creation (Local present, Remote missing, Base missing)', () => {
     const group1 = createGroup('1'); // Existing synced group
     const group2 = createGroup('new'); // Newly created locally

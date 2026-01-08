@@ -110,27 +110,44 @@ async function processRemoteData(firebaseGroups: Group[]): Promise<void> {
     // 4. Save merged result to local
     await saveToLocal(mergedGroups);
 
-    // 5. Update Base (Last Synced) to match the new committed state
-    await saveLastSynced(mergedGroups);
+    // 5. Check if Firebase sync is needed
+    // This includes:
+    // - Newly created local groups (newLocalGroups.length > 0)
+    // - Local deletions (groups in remote but not in merged result)
+    const mergedIds = new Set(mergedGroups.map(g => g.id));
+    const hasLocalDeletions = firebaseGroups.some(g => !mergedIds.has(g.id));
+    const needsFirebaseSync = newLocalGroups.length > 0 || hasLocalDeletions;
 
-    // 6. If there were newly created local groups, sync them to Firebase
-    // Fire-and-forget: errors are logged but don't block the sync flow
-    if (newLocalGroups.length > 0) {
-      syncToFirebase(mergedGroups).catch((error) => {
-        console.warn('Firebase sync failed (will retry on next sync):', error);
-        notifySyncStatus({ state: 'error', error: String(error) });
-        // Reset hash so next poll will retry the sync
-        lastRemoteDataHash = null;
-      });
-    }
-
-    // Notify all subscribers
+    // Notify all subscribers with merged data immediately (optimistic update)
     for (const callback of syncCallbacks) {
       callback(mergedGroups);
     }
 
-    // Notify synced state on success
-    notifySyncStatus({ state: 'synced', error: null });
+    // 6. Update Base (Last Synced) - timing depends on whether Firebase sync is needed
+    // If sync is needed, delay Base update until sync succeeds to ensure retry on failure
+    if (needsFirebaseSync) {
+      // Sync to Firebase, then update Base on success
+      // If sync fails, Base stays unchanged so next processRemoteData can detect same changes
+      // Note: .catch captures errors from both syncToFirebase AND saveLastSynced
+      syncToFirebase(mergedGroups)
+        .then(() => saveLastSynced(mergedGroups))
+        .then(() => {
+          // Only notify synced after Firebase sync succeeds
+          notifySyncStatus({ state: 'synced', error: null });
+        })
+        .catch((error) => {
+          console.warn('Sync failed (will retry on next sync):', error);
+          notifySyncStatus({ state: 'error', error: String(error) });
+          // Reset hash so next poll will retry the sync
+          // Base is NOT updated, so 3-way merge will detect the same local changes
+          lastRemoteDataHash = null;
+        });
+    } else {
+      // No sync needed - safe to update Base immediately
+      await saveLastSynced(mergedGroups);
+      // Notify synced state
+      notifySyncStatus({ state: 'synced', error: null });
+    }
   } catch (e) {
     // Reset hash so next poll will retry processing
     lastRemoteDataHash = null;

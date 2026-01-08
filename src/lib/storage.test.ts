@@ -438,6 +438,93 @@ describe('Firebase sync during local write', () => {
     // Group B should not be present (superseded by later update)
     expect(lastCallArg.some((g: Group) => g.id === 'g-b')).toBe(false);
   });
+
+  it('syncs local deletions to Firebase when processing remote data', async () => {
+    const syncCallback = vi.fn();
+    initFirebaseSyncFn(syncCallback);
+
+    authCallback?.({ uid: 'test-user' } as User);
+
+    // Initial state: group A and B exist locally and in base
+    const groupA = mockGroup('g-a', 'Group A');
+    const groupB = mockGroup('g-b', 'Group B');
+    store[LOCAL_STORAGE_KEY] = [groupA]; // Group B was deleted locally
+    store[LAST_SYNCED_KEY] = [groupA, groupB]; // Base still has both
+
+    // Clear saveGroupsToFirebase mock calls
+    vi.mocked(saveGroupsToFirebase).mockClear();
+
+    // Firebase still has both groups (sync not completed yet)
+    firebaseCallback?.([groupA, groupB]);
+
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    // Should sync to Firebase because local deletion was detected
+    expect(saveGroupsToFirebase).toHaveBeenCalled();
+
+    // The synced data should NOT include group B (it was deleted locally)
+    const syncedGroups = vi.mocked(saveGroupsToFirebase).mock.calls[0][1] as Group[];
+    expect(syncedGroups.some(g => g.id === 'g-a')).toBe(true);
+    expect(syncedGroups.some(g => g.id === 'g-b')).toBe(false);
+  });
+
+  it('does not update Base when Firebase sync fails for local deletions', async () => {
+    const syncCallback = vi.fn();
+    initFirebaseSyncFn(syncCallback);
+
+    authCallback?.({ uid: 'test-user' } as User);
+
+    // Initial state: group A and B exist in base
+    const groupA = mockGroup('g-a', 'Group A');
+    const groupB = mockGroup('g-b', 'Group B');
+    store[LOCAL_STORAGE_KEY] = [groupA]; // Group B was deleted locally
+    store[LAST_SYNCED_KEY] = [groupA, groupB]; // Base still has both
+
+    // Make Firebase sync fail
+    vi.mocked(saveGroupsToFirebase).mockRejectedValue(new Error('Network error'));
+
+    // Firebase still has both groups
+    firebaseCallback?.([groupA, groupB]);
+
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    // Sync was attempted but failed
+    expect(saveGroupsToFirebase).toHaveBeenCalled();
+
+    // Base should NOT be updated (still has both groups) so retry can detect deletion
+    const base = store[LAST_SYNCED_KEY] as Group[];
+    expect(base.some(g => g.id === 'g-a')).toBe(true);
+    expect(base.some(g => g.id === 'g-b')).toBe(true);
+  });
+
+  it('updates Base after successful Firebase sync for local deletions', async () => {
+    const syncCallback = vi.fn();
+    initFirebaseSyncFn(syncCallback);
+
+    authCallback?.({ uid: 'test-user' } as User);
+
+    // Initial state: group A and B exist in base
+    const groupA = mockGroup('g-a', 'Group A');
+    const groupB = mockGroup('g-b', 'Group B');
+    store[LOCAL_STORAGE_KEY] = [groupA]; // Group B was deleted locally
+    store[LAST_SYNCED_KEY] = [groupA, groupB]; // Base still has both
+
+    // Make Firebase sync succeed
+    vi.mocked(saveGroupsToFirebase).mockResolvedValue();
+
+    // Firebase still has both groups
+    firebaseCallback?.([groupA, groupB]);
+
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    // Sync was successful
+    expect(saveGroupsToFirebase).toHaveBeenCalled();
+
+    // Base should be updated (only has group A)
+    const base = store[LAST_SYNCED_KEY] as Group[];
+    expect(base.some(g => g.id === 'g-a')).toBe(true);
+    expect(base.some(g => g.id === 'g-b')).toBe(false);
+  });
 });
 
 describe('subscribeSyncStatus', () => {
