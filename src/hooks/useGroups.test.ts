@@ -223,4 +223,66 @@ describe('useGroups', () => {
     const group = result.current.groups.find((g) => g.id === 'pinned');
     expect(group?.items.map((t) => t.id)).toEqual(['t1', 't2']);
   });
+
+  it('places newly pinned group at the END of pinned section', async () => {
+    // u1 has lowest order (-5), but after pinning should appear LAST among pinned
+    const pinned1: Group = { ...baseGroup, id: 'p1', pinned: true, order: 0 };
+    const pinned2: Group = { ...secondGroup, id: 'p2', pinned: true, order: 1 };
+    const unpinned1: Group = { ...baseGroup, id: 'u1', pinned: false, order: -5 };
+    vi.mocked(storage.get).mockResolvedValue({ groups: [pinned1, pinned2, unpinned1] });
+
+    const { result } = renderHook(() => useGroups());
+
+    await waitFor(() => {
+      expect(result.current.groups).toHaveLength(3);
+    });
+
+    // Pin the unpinned group
+    await act(async () => {
+      await result.current.updateGroupData('u1', { pinned: true });
+    });
+
+    // Verify storage was called with correct order
+    const savedGroups = vi.mocked(storage.updateGroups).mock.calls[0][0];
+    const pinnedU1 = savedGroups.find((g: Group) => g.id === 'u1');
+
+    // u1 should have order > max pinned order (1)
+    expect(pinnedU1?.pinned).toBe(true);
+    expect(pinnedU1?.order).toBeGreaterThan(1);
+
+    // In the UI, u1 should appear last among pinned groups
+    const pinnedGroups = result.current.groups.filter(g => g.pinned);
+    expect(pinnedGroups[pinnedGroups.length - 1].id).toBe('u1');
+  });
+
+  it('places newly unpinned group at the TOP of collections section', async () => {
+    // p1 has highest order (100), but after unpinning should appear FIRST among unpinned
+    const pinned1: Group = { ...baseGroup, id: 'p1', pinned: true, order: 100 };
+    const unpinned1: Group = { ...secondGroup, id: 'u1', pinned: false, order: 10 };
+    const unpinned2: Group = { ...baseGroup, id: 'u2', pinned: false, order: 20 };
+    vi.mocked(storage.get).mockResolvedValue({ groups: [pinned1, unpinned1, unpinned2] });
+
+    const { result } = renderHook(() => useGroups());
+
+    await waitFor(() => {
+      expect(result.current.groups).toHaveLength(3);
+    });
+
+    // Unpin p1
+    await act(async () => {
+      await result.current.updateGroupData('p1', { pinned: false });
+    });
+
+    // Verify storage was called with correct order
+    const savedGroups = vi.mocked(storage.updateGroups).mock.calls[0][0];
+    const unpinnedP1 = savedGroups.find((g: Group) => g.id === 'p1');
+
+    // p1 should have order < min unpinned order (10)
+    expect(unpinnedP1?.pinned).toBe(false);
+    expect(unpinnedP1?.order).toBeLessThan(10);
+
+    // In the UI, p1 should appear first among unpinned groups
+    const unpinnedGroups = result.current.groups.filter(g => !g.pinned);
+    expect(unpinnedGroups[0].id).toBe('p1');
+  });
 });

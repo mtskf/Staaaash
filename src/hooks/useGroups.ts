@@ -79,7 +79,30 @@ export function useGroups() {
   }, []);
 
   const updateGroupData = useCallback(async (id: string, data: Partial<Group>) => {
-    const newGroups = groups.map(g => g.id === id ? { ...g, ...data } : g);
+    const group = groups.find(g => g.id === id);
+    if (!group) return;
+
+    // Adjust order when pinned status changes
+    const adjustedData: Partial<Group> = { ...data };
+    if (data.pinned !== undefined && data.pinned !== group.pinned) {
+      if (data.pinned) {
+        // Pinning: place at END of pinned section
+        const pinnedGroups = groups.filter(g => g.pinned);
+        const maxPinnedOrder = pinnedGroups.length > 0
+          ? Math.max(...pinnedGroups.map(g => g.order))
+          : -1;
+        adjustedData.order = maxPinnedOrder + 1;
+      } else {
+        // Unpinning: place at TOP of collections section
+        const unpinnedGroups = groups.filter(g => !g.pinned);
+        const minUnpinnedOrder = unpinnedGroups.length > 0
+          ? Math.min(...unpinnedGroups.map(g => g.order))
+          : 0;
+        adjustedData.order = minUnpinnedOrder - 1;
+      }
+    }
+
+    const newGroups = groups.map(g => g.id === id ? { ...g, ...adjustedData } : g);
     // Re-sort to maintain pinned-first invariant (e.g., after pin toggle)
     setGroups(sortPinnedFirst([...newGroups]));
     try {
