@@ -77,7 +77,15 @@ export function useDashboardDnD(
 
         if (targetGroupId && active.id !== targetGroupId) {
             if (shiftPressedRef.current) {
-                // Merge Groups - fetch latest state to avoid race condition with Firebase sync
+                // 🔄 Merge Groups with race condition prevention
+                //
+                // Why fetch from storage instead of using props?
+                // During drag, Firebase sync may update React state asynchronously.
+                // The `groups` prop could be stale by the time user drops.
+                // Fetching from chrome.storage.local ensures we merge with the
+                // latest persisted state, preventing tab loss.
+                //
+                // Fallback: If storage.get() fails, use props as best effort.
                 let currentGroups: Group[];
                 try {
                     currentGroups = await storage.get().then(d => d.groups);
@@ -86,7 +94,7 @@ export function useDashboardDnD(
                     currentGroups = groups;
                 }
 
-                // Safety guard: verify source and target exist in fresh data
+                // Safety guard: abort if source or target was deleted during drag
                 const sourceExists = currentGroups.some(g => g.id === active.id);
                 const targetExists = currentGroups.some(g => g.id === targetGroupId);
                 if (!sourceExists || !targetExists) {
