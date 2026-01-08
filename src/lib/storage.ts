@@ -392,12 +392,14 @@ export const storage = {
         if (user) {
           // Reset hash so next Firebase callback processes the update after our sync
           lastRemoteDataHash = null;
+          // Capture groups for use in async callback (TypeScript narrowing doesn't persist)
+          const groupsToSync = data.groups;
           // Sync to Firebase in background (fire-and-forget)
           // Base is updated ONLY after Firebase sync succeeds to prevent flicker bug:
           // If Base is updated before Firebase has the data, stale Firebase callbacks
           // would treat deleted items as "new remote groups" and restore them
-          syncToFirebase(data.groups)
-            .then(() => saveLastSynced(data.groups))
+          syncToFirebase(groupsToSync)
+            .then(() => saveLastSynced(groupsToSync))
             .catch((error) => {
               console.warn('Firebase sync failed (will retry on next sync):', error);
               notifySyncStatus({ state: 'error', error: String(error) });
