@@ -11,8 +11,11 @@ import {
   arrayMove,
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
+import { toast } from 'sonner';
 import type { Group, TabItem } from '@/types';
 import { mergeGroupsIntoTarget, reorderTabInGroup, moveTabToGroup } from '@/lib/logic';
+import { storage } from '@/lib/storage';
+import { t } from '@/lib/i18n';
 
 export function useDashboardDnD(
   groups: Group[],
@@ -74,9 +77,39 @@ export function useDashboardDnD(
 
         if (targetGroupId && active.id !== targetGroupId) {
             if (shiftPressedRef.current) {
-                // Merge Groups
-                const newGroups = mergeGroupsIntoTarget(groups, active.id as string, targetGroupId);
-                if (newGroups !== groups) {
+                // 🔄 Merge Groups with race condition prevention
+                //
+                // Why fetch from storage instead of using props?
+                // During drag, Firebase sync may update React state asynchronously.
+                // The `groups` prop could be stale by the time user drops.
+                // Fetching from chrome.storage.local ensures we merge with the
+                // latest persisted state, preventing tab loss.
+                //
+                // Fallback: If storage.get() fails, use props as best effort.
+                let currentGroups: Group[];
+                try {
+                    currentGroups = await storage.get().then(d => d.groups);
+                } catch {
+                    console.warn('[DnD] storage.get failed, using props');
+                    currentGroups = groups;
+                }
+
+                // Safety guard: abort if source or target was deleted during drag
+                const sourceExists = currentGroups.some(g => g.id === active.id);
+                const targetExists = currentGroups.some(g => g.id === targetGroupId);
+                if (!sourceExists || !targetExists) {
+                    console.warn('[DnD] Source or target missing in storage, aborting merge', {
+                        sourceId: active.id,
+                        targetId: targetGroupId,
+                        sourceExists,
+                        targetExists
+                    });
+                    toast.error(t('merge_failed'));
+                    return;
+                }
+
+                const newGroups = mergeGroupsIntoTarget(currentGroups, active.id as string, targetGroupId);
+                if (newGroups !== currentGroups) {
                     await updateGroups(newGroups);
                 }
             } else if (overType === 'Group') {

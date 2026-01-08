@@ -12,7 +12,7 @@
 
 ## Active
 
-_No active items_
+- [ ] ⚠️🐛[S] グループマージ時のタブ消失: ドラッグ中のFirebase syncによるrace conditionを修正。storage.get()で最新データを取得してからマージ実行。
 
 ---
 
