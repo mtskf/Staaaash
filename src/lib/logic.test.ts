@@ -124,6 +124,44 @@ describe('mergeGroupsIntoTarget', () => {
         expect(result).toEqual(groups);
         expect(result).toHaveLength(2);
     });
+
+    it('removes pinned source group after merge', () => {
+        const pinnedSource: Group = {
+            id: 'pinned-source', title: 'Pinned Source', pinned: true, collapsed: false, order: 0, createdAt: 0, updatedAt: 0,
+            items: [mockTab3]
+        };
+        const unpinnedTarget: Group = {
+            id: 'unpinned-target', title: 'Unpinned Target', pinned: false, collapsed: false, order: 1, createdAt: 0, updatedAt: 0,
+            items: [mockTab1, mockTab2]
+        };
+        const groups = [pinnedSource, unpinnedTarget];
+
+        const result = mergeGroupsIntoTarget(groups, 'pinned-source', 'unpinned-target');
+
+        expect(result).toHaveLength(1);
+        expect(result[0].id).toBe('unpinned-target');
+        expect(result[0].items).toHaveLength(3);
+        expect(result.find(g => g.id === 'pinned-source')).toBeUndefined();
+    });
+
+    it('removes unpinned source group when merging into pinned target', () => {
+        const pinnedTarget: Group = {
+            id: 'pinned-target', title: 'Pinned Target', pinned: true, collapsed: false, order: 0, createdAt: 0, updatedAt: 0,
+            items: [mockTab1]
+        };
+        const unpinnedSource: Group = {
+            id: 'unpinned-source', title: 'Unpinned Source', pinned: false, collapsed: false, order: 1, createdAt: 0, updatedAt: 0,
+            items: [mockTab2, mockTab3]
+        };
+        const groups = [pinnedTarget, unpinnedSource];
+
+        const result = mergeGroupsIntoTarget(groups, 'unpinned-source', 'pinned-target');
+
+        expect(result).toHaveLength(1);
+        expect(result[0].id).toBe('pinned-target');
+        expect(result[0].items).toHaveLength(3);
+        expect(result.find(g => g.id === 'unpinned-source')).toBeUndefined();
+    });
 });
 
 describe('reorderTabInGroup', () => {

@@ -9,10 +9,13 @@ export interface MergeResult {
  * Performs a 3-way merge of groups: local, remote, and base (last synced).
  *
  * Logic:
- * 1. Remote is the source of truth for existing items (Remote Wins).
+ * 1. Remote is the source of truth for existing items, with LWW (Last Write Wins) for conflicts.
  * 2. If a group exists Locally but not Remotely:
- *    a. If it was present in Base (last sync) -> It meant it was deleted Remotely. Action: Delete Locally.
- *    b. If it was NOT in Base -> It means it is a New Local group. Action: Keep Locally & Push to Remote.
+ *    a. If it was present in Base (last sync) -> It was deleted Remotely. Action: Delete Locally.
+ *    b. If it was NOT in Base -> It is a New Local group. Action: Keep Locally & Push to Remote.
+ * 3. If a group exists Remotely but not Locally:
+ *    a. If it was present in Base -> It was deleted Locally. Action: Delete from merged result.
+ *    b. If it was NOT in Base -> It is a New Remote group. Action: Keep in merged result.
  */
 export function mergeGroupsThreeWay(
   localGroups: Group[],
@@ -20,10 +23,21 @@ export function mergeGroupsThreeWay(
   baseGroups: Group[]
 ): MergeResult {
   const baseIds = new Set(baseGroups.map(g => g.id));
+  const localIds = new Set(localGroups.map(g => g.id));
   const remoteIds = new Set(remoteGroups.map(g => g.id));
 
-  // Start with all remote groups (Remote Wins)
-  const mergedGroups: Group[] = [...remoteGroups];
+  // Start with remote groups, but filter out locally deleted ones
+  // Local Deletion: In Base, NOT in Local, still in Remote -> Remove from merged
+  const mergedGroups: Group[] = remoteGroups.filter(remoteGroup => {
+    const wasInBase = baseIds.has(remoteGroup.id);
+    const isInLocal = localIds.has(remoteGroup.id);
+    // If it was in base but not in local, it was deleted locally
+    if (wasInBase && !isInLocal) {
+      return false; // Exclude from merged (local deletion wins)
+    }
+    return true;
+  });
+
   const newLocalGroups: Group[] = [];
 
   for (const localGroup of localGroups) {
