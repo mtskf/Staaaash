@@ -12,7 +12,7 @@
 
 ## Active
 
-(None)
+- [ ] ⚠️🔧[M] Single Source of Truth: React stateの更新を`chrome.storage.onChanged`のみに統一。`initFirebaseSync`コールバック、`localWriteInProgress`、`pendingRemoteData`等を削除し、race conditionの根本原因を解消。
 
 ---
 
