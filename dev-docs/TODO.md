@@ -18,6 +18,8 @@
 
 ## ✅ Done
 
+- [x] 🚨🐛[S] 古いローカルデータによるFirebase上書き防止: 3-way mergeでstaleness検出をoverlapping groups比較に変更。extension reload後のデータ消失を防止。[PR #70](https://github.com/mtskf/Staaaash/pull/70)
+
 - [x] ⚠️🐛[S] グループマージ時のタブ消失: ドラッグ中のFirebase syncによるrace conditionを修正。storage.get()で最新データを取得してからマージ実行。[PR #68](https://github.com/mtskf/Staaaash/pull/68)
 
 - [x] ⚠️🐛[S] Pinnedグループ削除時のフリッカー修正: storage.setでBase更新をFirebase sync完了後に移動。3-way mergeが削除を正しく検出できるように。[PR #67](https://github.com/mtskf/Staaaash/pull/67)
