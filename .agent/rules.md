@@ -1,54 +1,43 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+このリポジトリで作業する際のガイド。
 
-## Commands
+## コマンド
 
 ```bash
-pnpm run dev          # Dev server with HMR
-pnpm run build        # Production build
-pnpm run lint         # ESLint
-pnpm run check        # typecheck + test + lint
-
-pnpm test             # Vitest watch mode
-pnpm test -- --run    # Run once
-pnpm test <pattern>   # Run specific file
+pnpm run dev       # 開発サーバー (HMR)
+pnpm run build     # 本番ビルド
+pnpm run check     # typecheck + test + lint (CI用)
+pnpm test          # テスト (ウォッチモード)
 ```
 
-## Architecture
+## アーキテクチャ
 
-Chrome Extension (Manifest V3) with React dashboard and Firebase cloud sync.
+Chrome Extension (Manifest V3) + React + Firebase クラウド同期
 
-### Sync Strategy
+### 同期戦略
 
-- **Offline-First**: `chrome.storage.local` is source of truth; UI never blocks on network
-- **3-Way Merge**: Local, Remote, Base comparison for creations/deletions
-- **LWW**: Conflicts resolved by `updatedAt` (newer wins)
-- **Fire-and-Forget**: Firebase sync in background; errors don't fail local saves
+- **Offline-First**: `chrome.storage.local` が正。UIはネットワーク待ちしない
+- **3-Way Merge**: Local / Remote / Base で作成・削除を判定
+- **LWW**: 競合は `updatedAt` で解決（新しい方が勝つ）
+- **Fire-and-Forget**: Firebase同期はバックグラウンド実行
 
-### Key Modules
+### 主要モジュール
 
-- `storage.ts` - Chrome storage + Firebase sync orchestration
-- `sync-utils.ts` - Pure 3-way merge algorithm
-- `logic.ts` - Pure group/tab operations (merge, reorder, move)
-- `useGroups.ts` - Main state hook with optimistic updates
-- `background/index.ts` - Service worker for archiving
+- `storage.ts` - Chrome storage + Firebase同期
+- `sync-utils.ts` - 3-wayマージ（純粋関数）
+- `logic.ts` - グループ/タブ操作（純粋関数）
+- `useGroups.ts` - 状態管理フック
+- `background/index.ts` - アーカイブ用SW
 
-### Invariants
+### 不変条件
 
-- Groups sorted **pinned-first**, then by `order`
-- `updatedAt` set on content changes only
-- Background script: Firebase auth disabled via esbuild
+- グループは pinned優先 → `order` でソート
+- `updatedAt` はコンテンツ変更時のみ
+- バックグラウンド: Firebase auth 無効
 
-## Tips
+## プロジェクト固有
 
-- Use `pnpm` (not npm/yarn)
-- Path alias: `@/` = `src/`
-
-## Project Rules
-
-- グローバルで指定されたルールに従って
-- タスク完了時は `dev-docs/` を必要に応じて更新
-- TypeScript + ES Modules
-- 外部API呼び出しは `try-catch` + リトライ処理
-- コミットIDが渡された場合は、そのコミットを徹底的にレビュー
+- `pnpm` 使用、パスエイリアス `@/` = `src/`
+- 外部API: `try-catch` + リトライ
+- ドキュメント: `dev-docs/` に配置
