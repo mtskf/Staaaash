@@ -13,12 +13,13 @@
 
 ## Active
 
-- [ ] 🚨✨[H] グループ作成時にタイトル入力欄が画面中央にスクロールされる: `GroupCard.tsx` の `autoFocusName` useEffect内にスクロール処理を追加し、`element.scrollIntoView({ behavior: 'smooth', block: 'center' })` を呼び出す。`prefers-reduced-motion`対応含む。[詳細設計](plans/radiant-stargazing-haven.md)
 - [ ] ⚠️🔧[M] Single Source of Truth: React stateの更新を`chrome.storage.onChanged`のみに統一。`initFirebaseSync`コールバック、`localWriteInProgress`、`pendingRemoteData`等を削除し、race conditionの根本原因を解消。
 
 ---
 
 ## ✅ Done
+
+- [x] 🚨✨[H] グループ作成時にタイトル入力欄が画面中央にスクロールされる: `GroupCard.tsx` の `autoFocusName` useEffect内にスクロール処理を追加し、`element.scrollIntoView({ behavior: 'smooth', block: 'center' })` を呼び出す。`prefers-reduced-motion`対応含む。[詳細設計](plans/radiant-stargazing-haven.md) - PR #77
 
 - [x] 🚨🐛[S] 古いローカルデータによるFirebase上書き防止: 3-way mergeでstaleness検出をoverlapping groups比較に変更。extension reload後のデータ消失を防止。[PR #70](https://github.com/mtskf/Staaaash/pull/70)
 
