@@ -1,23 +1,16 @@
 name: Claude Code Review
 
 on:
-  # Disabled for now; re-enable by restoring event triggers.
-  workflow_dispatch:
+  issue_comment:
+    types: [created]
 
 jobs:
   claude-review:
-    # Run when:
-    # 1. PR is opened/ready_for_review/reopened (only from same repo, not forks)
-    # 2. @claude is mentioned in PR comments (with word boundary check)
+    # Run when @claude is mentioned in PR comments (same repo only).
     if: |
-      (github.event_name == 'pull_request' &&
-       github.event.pull_request.head.repo.full_name == github.repository) ||
-      (github.event_name == 'issue_comment' &&
-       github.event.issue.pull_request &&
-       github.event.issue.pull_request.head.repo.full_name == github.repository &&
-       (contains(github.event.comment.body, '@claude ') ||
-        startsWith(github.event.comment.body, '@claude') ||
-        endsWith(github.event.comment.body, '@claude')))
+      github.event.issue.pull_request &&
+      github.event.issue.pull_request.head.repo.full_name == github.repository &&
+      contains(github.event.comment.body, '@claude')
 
     runs-on: ubuntu-latest
     permissions:
