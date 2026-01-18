@@ -1,65 +1,88 @@
 # Architecture
 
-## Overview
-Staaaash is a Chrome Extension that replaces the New Tab page with a dashboard to save, organize, and restore tab groups.
+> Implementation guide for developers (structure, algorithms, data flow, invariants)
+
+Staaaash is a Chrome Extension dashboard for saving, organizing, and restoring tab groups.
 
 ## Core Components
-### 1. New Tab Dashboard (`src/features/dashboard`)
+
+### 1. Dashboard UI (`src/features/dashboard`)
+
 - **Framework**: React + Vite
 - **Styling**: Tailwind CSS + shadcn/ui (Radix UI)
-- **State Management**: React local state (`useState` / `useEffect`).
-- **Drag & Drop**: `@dnd-kit` (Core, Sortable, Utilities) for complex interactions.
-    - `GroupCard`: Handles group rendering and internal sortable context.
-    - `TabCard` / `SortableTabCard`: Separated for correct DragOverlay behavior.
-    - `Dashboard`: Orchestrates the main DndContext and state updates.
+- **State Management**: React local state (`useState` / `useEffect`)
+- **Drag & Drop**: `@dnd-kit` for group/tab reordering
 
 ### 2. Data Persistence (`src/lib/storage.ts`, `src/lib/firebase.ts`)
-- **Storage**:
-    - **Offline-First**: `chrome.storage.local` is the UI source of truth.
-    - **Cloud Sync**: Firebase Realtime Database via REST API.
-    - **Sync Strategy**: 3-way merge (Local, Remote, Base).
-- **Authentication**: `chrome.identity.launchWebAuthFlow` with Google OAuth 2.0 (Web Application Client).
-- **Schema**:
-  - `groups`: Array of `Group` objects.
-  - `Group`: Contains `id`, `title`, `items` (tabs), `pinned`, `collapsed`, `order`, `createdAt`, `updatedAt`.
-  - `TabItem`: Contains `id`, `url`, `title`, `favIconUrl`.
-- **Sync Details**:
-  - **LWW**: Conflicts resolved by `updatedAt` (newer wins).
-  - **Fire-and-Forget**: Firebase sync runs in background; local saves never block.
-  - **Change Detection**: Hash remote data to skip no-op polls.
+
+**Storage Architecture**:
+
+- **Offline-First**: `chrome.storage.local` is the source of truth for UI
+- **Cloud Sync**: Firebase Realtime Database via REST API
+- **Conflict Resolution**: 3-way merge (Local, Remote, Base) with LWW for per-group conflicts
+
+**Authentication**:
+
+- `chrome.identity.launchWebAuthFlow` to obtain Google OAuth access token
+- Access token → Firebase Auth via `signInWithCredential()`
+- REST API calls use `user.getIdToken()` for authentication
+
+**Schema**:
+
+- `groups`: Array of `Group` objects
+- `Group`: `id`, `title`, `items` (TabItem[]), `pinned`, `collapsed`, `order`, `color?`, `createdAt`, `updatedAt`
+- `TabItem`: `id`, `url`, `title`, `favIconUrl?`
+
+**Sync Strategy**:
+
+- **3-Way Merge**: Compares Local, Remote, and Base (last synced state stored in `staaaash_last_synced`)
+- **Stale Protection**: Detects rolled-back local data by comparing overlapping group timestamps with Base
+- **Triggers**: UI initialization (via `initFirebaseSync`) + 5-second polling (via `subscribeToGroups`)
+- **Fire-and-Forget**: Firebase sync runs in background; local saves never block UI
+- **Change Detection**: Hash remote data to skip no-op syncs
+- **Write Lock**: `localWriteInProgress` flag prevents Firebase callback from overwriting local changes
+- **Pending Queue**: Remote updates during local write are queued in `pendingRemoteData`
+- **Error Handling**: Local operations always succeed; Firebase failures don't block user actions
+
+#### Key Modules
+
+- `storage.ts` - Chrome storage operations + Firebase sync orchestration
+- `sync.ts` - Firebase synchronization with retry logic, exponential backoff, and stale result detection
+- `sync-utils.ts` - 3-way merge logic (pure functions)
+- `logic.ts` - Group/tab operations (pure functions)
+- `useGroups.ts` - State management hook (React)
+- `background/index.ts` - Service worker (archiving, shortcuts)
+
+#### Invariants
+
+- Groups sorted by `pinned` (true first), then by `order` (ascending)
+- `updatedAt` updated on ANY content change (including `order`, `pinned`, `collapsed`)
+- `updatedAt` comparison uses deep equality (excludes only `updatedAt` itself)
+- Background scripts have environment variables injected at build time via esbuild
+- Firebase auth is intentionally disabled in background scripts (architectural decision - background doesn't perform sync operations)
+- `syncToFirebase()` exits early when user is `null` (no auth flow in background context)
 
 ### 3. Background Scripts (`src/background`)
-- **Archiving**: Extension icon click or `⌥S` to archive current window tabs.
-- **Open Collection**: `⌥⇧S` to open the collection dashboard.
-- **Context Menu**: Manages the "Open Collections" context menu item.
-- **Keyboard Shortcuts**: Listens for `chrome.commands` for global shortcuts.
-- **Bundling**: `esbuild` for Service Worker module handling.
+
+- **Archiving**: Extension icon click or `⌥S` to save current window tabs
+- **Open Dashboard**: `⌥⇧S` to open collection dashboard
+- **Context Menu**: "Open Collections" menu item
+- **Keyboard Shortcuts**: Global shortcuts via `chrome.commands`
+- **Bundling**: `esbuild` for Service Worker module handling
 
 ## Directory Structure
-```
-src/
-├── background/      # Extension background service worker
-├── components/ui/   # Generic UI components (shadcn/ui, sonner)
-├── features/        # Feature-specific logic
-│   └── dashboard/   # Dashboard components (Dashboard, GroupCard, TabCard, AuthButton, DashboardHeader, SyncIndicator)
-├── hooks/           # Custom React hooks (useGroups, useDashboardDnD, useKeyboardNav, useAuth, useSyncStatus)
-├── lib/             # Utilities
-│   ├── storage.ts   # Chrome storage wrapper with Firebase sync
-│   ├── sync.ts      # Sync orchestration (polling, retry, race protection)
-│   ├── sync-utils.ts # 3-way merge logic
-│   ├── firebase.ts  # Firebase REST API client
-│   ├── logic.ts     # Pure functions for group/tab operations
-│   ├── migration.ts # Data migration utilities
-│   ├── i18n.ts      # chrome.i18n wrapper
-│   └── utils.ts     # General utilities
-├── test/            # Test setup
-├── types/           # TypeScript definitions
-├── constants.ts     # Extension-wide constants
-├── App.tsx          # Main app entry
-├── main.tsx         # React entry point
-└── index.css        # Global styles
-```
+
+- `src/features/dashboard/` - UI components & business logic
+- `src/lib/` - Core utilities (storage, sync, Firebase, migrations)
+- `src/background/` - Extension service worker
+- `src/hooks/` - React state management & custom hooks
+- `src/components/ui/` - Generic UI components (shadcn/ui, sonner)
+- `src/types/` - TypeScript type definitions
+- `src/test/` - Test setup & utilities
 
 ## Build System
-- **Vite**: Handles HMR during dev and bundling for production.
-- **Manifest V3**: Compliant with latest Chrome Extension standards.
+
+- **Vite**: HMR during development, optimized bundling for production
+- **Manifest V3**: Chrome Extension standards compliance
+- **TypeScript**: Strict type checking
+- **esbuild**: Service Worker bundling (background scripts)
