@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { GroupCard } from './GroupCard';
 import type { Group } from '@/types';
@@ -54,8 +54,40 @@ const defaultProps = {
 };
 
 describe('GroupCard', () => {
+  let scrollIntoViewMock: ReturnType<typeof vi.fn>;
+  let originalScrollIntoView: typeof Element.prototype.scrollIntoView;
+  let originalMatchMedia: typeof window.matchMedia;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+
+    // scrollIntoView の元の関数を保存してモック
+    originalScrollIntoView = Element.prototype.scrollIntoView;
+    scrollIntoViewMock = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoViewMock;
+
+    // matchMedia の元の関数を保存してモック
+    originalMatchMedia = window.matchMedia;
+    window.matchMedia = vi.fn().mockImplementation(query => ({
+      matches: false, // デフォルトはアニメーション有効
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+  });
+
+  afterEach(() => {
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
+
+    // グローバルモックを復元
+    Element.prototype.scrollIntoView = originalScrollIntoView;
+    window.matchMedia = originalMatchMedia;
   });
 
   it('renders group title', () => {
@@ -166,5 +198,114 @@ describe('GroupCard', () => {
     const { container } = render(<GroupCard {...defaultProps} isSelected={true} />);
     const card = container.querySelector('.ring-2');
     expect(card).toBeInTheDocument();
+  });
+
+  it('scrolls to center with smooth behavior when autoFocusName is true', () => {
+    // Act
+    render(<GroupCard {...defaultProps} autoFocusName={true} />);
+
+    // rAF と setTimeout を進める
+    vi.runAllTimers();
+
+    // Assert
+    expect(scrollIntoViewMock).toHaveBeenCalledWith({
+      behavior: 'smooth',
+      block: 'center'
+    });
+  });
+
+  it('respects prefers-reduced-motion setting', () => {
+    // Arrange: reduced-motion を有効化
+    window.matchMedia = vi.fn().mockImplementation(query => ({
+      matches: query === '(prefers-reduced-motion: reduce)',
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+
+    // Act
+    render(<GroupCard {...defaultProps} autoFocusName={true} />);
+    vi.runAllTimers();
+
+    // Assert: behavior が 'auto' になる
+    expect(scrollIntoViewMock).toHaveBeenCalledWith({
+      behavior: 'auto',
+      block: 'center'
+    });
+  });
+
+  it('does not scroll when autoFocusName is false', () => {
+    // Act
+    render(<GroupCard {...defaultProps} autoFocusName={false} />);
+    vi.runAllTimers();
+
+    // Assert
+    expect(scrollIntoViewMock).not.toHaveBeenCalled();
+  });
+
+  it('handles missing group element gracefully', () => {
+    // Arrange: getElementById が group 要素に対して null を返すようにモック
+    const originalGetElementById = document.getElementById;
+    document.getElementById = vi.fn((id) => {
+      if (id.startsWith('item-')) return null;
+      return originalGetElementById.call(document, id);
+    }) as typeof document.getElementById;
+
+    // Act
+    render(<GroupCard {...defaultProps} autoFocusName={true} />);
+    vi.runAllTimers();
+
+    // Assert: scrollIntoView が呼ばれない、エラーも発生しない
+    expect(scrollIntoViewMock).not.toHaveBeenCalled();
+
+    // Cleanup
+    document.getElementById = originalGetElementById;
+  });
+
+  it('cleans up timers when autoFocusName changes from true to false', () => {
+    // Arrange: spy on cancelAnimationFrame
+    const cancelAnimationFrameSpy = vi.spyOn(global, 'cancelAnimationFrame');
+
+    // Act
+    const { rerender } = render(<GroupCard {...defaultProps} autoFocusName={true} />);
+
+    // タイマーが動いている状態で props を変更
+    rerender(<GroupCard {...defaultProps} autoFocusName={false} />);
+
+    // Assert: cancelAnimationFrame が呼ばれている
+    expect(cancelAnimationFrameSpy).toHaveBeenCalled();
+
+    // Cleanup
+    cancelAnimationFrameSpy.mockRestore();
+  });
+
+  it('cleans up timers on unmount before rAF executes', () => {
+    // Arrange: spy on cancelAnimationFrame
+    const cancelAnimationFrameSpy = vi.spyOn(global, 'cancelAnimationFrame');
+
+    // Act: unmount before running timers
+    const { unmount } = render(<GroupCard {...defaultProps} autoFocusName={true} />);
+    unmount();
+
+    // Assert: cancelAnimationFrame が呼ばれている
+    expect(cancelAnimationFrameSpy).toHaveBeenCalled();
+
+    // Cleanup
+    cancelAnimationFrameSpy.mockRestore();
+  });
+
+  it('does not cause errors when unmounted during async operations', () => {
+    // Act: 非同期処理中にアンマウント
+    const { unmount } = render(<GroupCard {...defaultProps} autoFocusName={true} />);
+
+    // タイマーの途中でアンマウント
+    unmount();
+
+    // Assert: エラーなく完了することを確認
+    expect(() => vi.runAllTimers()).not.toThrow();
   });
 });
