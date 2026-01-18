@@ -4,6 +4,7 @@
 > **Always keep this list sorted by Priority (High > Medium > Low).**
 
 **Legend**:
+
 - **Priority**: 🚨 High | ⚠️ Medium | 💡 Low | 🤖 Agent
 - **Type**: ✨ Feature | 🔧 Refactor | 🐛 Bug | ⚡ Performance | 📦 Infra | 📚 Docs | ✅ Check | ❓ Quest
 - **Scope**: [S] 1-2 files | [M] 3-5 files | [L] 6+ files | [I] Idea/Research
@@ -12,6 +13,7 @@
 
 ## Active
 
+- [ ] 🚨✨[H] グループ作成時にタイトル入力欄が画面中央にスクロールされる: `GroupCard.tsx` の `autoFocusName` useEffect内にスクロール処理を追加し、`element.scrollIntoView({ behavior: 'smooth', block: 'center' })` を呼び出す。`prefers-reduced-motion`対応含む。[詳細設計](plans/radiant-stargazing-haven.md)
 - [ ] ⚠️🔧[M] Single Source of Truth: React stateの更新を`chrome.storage.onChanged`のみに統一。`initFirebaseSync`コールバック、`localWriteInProgress`、`pendingRemoteData`等を削除し、race conditionの根本原因を解消。
 
 ---

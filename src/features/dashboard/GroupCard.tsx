@@ -46,15 +46,36 @@ export function GroupCard({
   React.useEffect(() => {
     if (autoFocusName) {
       setIsEditing(true);
-      // Small delay to ensure input is rendered before focus
-      const timeoutId = setTimeout(() => {
+
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+      // requestAnimationFrame で次回描画を待つ
+      const rafId = requestAnimationFrame(() => {
+        timeoutId = setTimeout(() => {
           const input = document.getElementById(`group-title-${group.id}`) as HTMLInputElement;
           if (input) {
-              input.focus();
-              input.select();
+            input.focus();
+            input.select();
           }
-      }, 50);
-      return () => clearTimeout(timeoutId);
+
+          // a11y対応: prefers-reduced-motion を検出
+          const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+          // 新規グループを画面中央にスクロール
+          const groupElement = document.getElementById(`item-${group.id}`);
+          groupElement?.scrollIntoView({
+            behavior: prefersReducedMotion ? 'auto' : 'smooth',
+            block: 'center'
+          });
+        }, 50);
+      });
+
+      return () => {
+        cancelAnimationFrame(rafId);
+        if (timeoutId !== undefined) {
+          clearTimeout(timeoutId);
+        }
+      };
     }
   }, [autoFocusName, group.id]);
 
