@@ -12,11 +12,35 @@ on:
 
 jobs:
   claude:
+    # Trigger when @claude is mentioned in:
+    # - Issue/PR comments (with word boundary check)
+    # - PR review comments
+    # - PR reviews
+    # - Issue title or body
+    # Security: Only run on PRs from the same repository (not forks) to prevent secret exposure
     if: |
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
-      (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+      (github.event_name == 'issue_comment' &&
+       (!github.event.issue.pull_request || github.event.pull_request.head.repo.full_name == github.repository) &&
+       (contains(github.event.comment.body, '@claude ') ||
+        startsWith(github.event.comment.body, '@claude') ||
+        endsWith(github.event.comment.body, '@claude'))) ||
+      (github.event_name == 'pull_request_review_comment' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       (contains(github.event.comment.body, '@claude ') ||
+        startsWith(github.event.comment.body, '@claude') ||
+        endsWith(github.event.comment.body, '@claude'))) ||
+      (github.event_name == 'pull_request_review' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       (contains(github.event.review.body, '@claude ') ||
+        startsWith(github.event.review.body, '@claude') ||
+        endsWith(github.event.review.body, '@claude'))) ||
+      (github.event_name == 'issues' &&
+       ((contains(github.event.issue.body, '@claude ') ||
+         startsWith(github.event.issue.body, '@claude') ||
+         endsWith(github.event.issue.body, '@claude')) ||
+        (contains(github.event.issue.title, '@claude ') ||
+         startsWith(github.event.issue.title, '@claude') ||
+         endsWith(github.event.issue.title, '@claude'))))
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -47,4 +71,3 @@ jobs:
           # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
           # or https://code.claude.com/docs/en/cli-reference for available options
           # claude_args: '--allowed-tools Bash(gh pr:*)'
-
