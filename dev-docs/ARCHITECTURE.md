@@ -1,6 +1,6 @@
 # Architecture
 
-**Purpose**: Implementation guide for developers (algorithms, data flow, invariants)
+> Implementation guide for developers (structure, algorithms, data flow, invariants)
 
 Staaaash is a Chrome Extension dashboard for saving, organizing, and restoring tab groups.
 
@@ -58,8 +58,9 @@ Staaaash is a Chrome Extension dashboard for saving, organizing, and restoring t
 - Groups sorted by `pinned` (true first), then by `order` (ascending)
 - `updatedAt` updated on ANY content change (including `order`, `pinned`, `collapsed`)
 - `updatedAt` comparison uses deep equality (excludes only `updatedAt` itself)
-- Background scripts cannot access Vite environment variables (`import.meta.env.*` is `undefined` in Service Worker context)
-- Firebase auth configuration requires environment variables, so auth is disabled in background scripts
+- Background scripts have environment variables injected at build time via esbuild
+- Firebase auth is intentionally disabled in background scripts (architectural decision - background doesn't perform sync operations)
+- `syncToFirebase()` exits early when user is `null` (no auth flow in background context)
 
 ### 3. Background Scripts (`src/background`)
 

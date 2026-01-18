@@ -1,6 +1,6 @@
 # Specifications (SPEC)
 
-**Purpose**: Feature requirements for product/QA (user behavior, acceptance criteria)
+> Feature requirements for product/QA (user behavior, acceptance criteria)
 
 ## Product Vision
 

@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-**Purpose**: Quick reference for AI coding assistants
+> Quick reference for AI coding assistants
 
 See `dev-docs/ARCHITECTURE.md` for implementation details, `dev-docs/SPEC.md` for features.
 
