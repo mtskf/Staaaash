@@ -15,12 +15,9 @@ Chrome extension: Tab group management dashboard. Opens via extension icon/keybo
 - UI: `src/App.tsx` → `src/features/dashboard/Dashboard.tsx`
 - Background: `src/background/index.ts`
 
-**Data Model**:
+**Data Model**: See [`src/types/index.ts`](file:src/types/index.ts)
 
-- `Group`: id, title, items[], pinned, collapsed, order, color?, createdAt, updatedAt
-- `TabItem`: id, url, title, favIconUrl?
-
-**Storage**: `chrome.storage.local` (offline-first) + Firebase sync (3-way merge)
+**Storage**: `chrome.storage.local` (offline-first, not `.sync`) + Firebase sync (3-way merge). Dev mode uses `localStorage`.
 
 ## Key Operations
 
@@ -35,9 +32,15 @@ Chrome extension: Tab group management dashboard. Opens via extension icon/keybo
 - `pnpm run check` - Type check + test + lint (CI)
 - `pnpm test` - Run tests (watch mode)
 
+## Code Style
+
+- TypeScript strict mode, no `any` types
+- Use named exports, not default exports
+- CSS: use Tailwind utility classes, no custom CSS files
+
 ## Constraints
 
 - Firebase auth disabled in background (Service Worker: `import.meta.env.*` is `undefined`)
 - Tailwind v3 only (v4 has PostCSS/shadcn issues)
-- Use `chrome.storage.local` (not `.sync`; dev mode → `localStorage`)
+
 - Dashboard opens via icon/shortcuts (not `chrome_url_overrides`)
