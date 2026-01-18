@@ -58,7 +58,8 @@ Staaaash is a Chrome Extension dashboard for saving, organizing, and restoring t
 - Groups sorted by `pinned` (true first), then by `order` (ascending)
 - `updatedAt` updated on ANY content change (including `order`, `pinned`, `collapsed`)
 - `updatedAt` comparison uses deep equality (excludes only `updatedAt` itself)
-- Background scripts cannot access Firebase auth (`import.meta.env.*` is `undefined` in Service Worker)
+- Background scripts cannot access Vite environment variables (`import.meta.env.*` is `undefined` in Service Worker context)
+- Firebase auth configuration requires environment variables, so auth is disabled in background scripts
 
 ### 3. Background Scripts (`src/background`)
 

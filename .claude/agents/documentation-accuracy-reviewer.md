@@ -32,7 +32,7 @@ Review the PR changes for:
 
 ### Project-Specific Documentation
 - Is dev-docs/ updated when implementation changes?
-- Are SPEC.md, TODO.md, LESSONS.md kept in sync?
+- Are SPEC.md, ARCHITECTURE.md, DECISIONS.md kept in sync with implementation?
 - Are new features documented in appropriate files?
 
 ## Output Format
