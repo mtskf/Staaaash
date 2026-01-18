@@ -246,4 +246,66 @@ describe('GroupCard', () => {
     // Assert
     expect(scrollIntoViewMock).not.toHaveBeenCalled();
   });
+
+  it('handles missing group element gracefully', () => {
+    // Arrange: getElementById が group 要素に対して null を返すようにモック
+    const originalGetElementById = document.getElementById;
+    document.getElementById = vi.fn((id) => {
+      if (id.startsWith('item-')) return null;
+      return originalGetElementById.call(document, id);
+    }) as typeof document.getElementById;
+
+    // Act
+    render(<GroupCard {...defaultProps} autoFocusName={true} />);
+    vi.runAllTimers();
+
+    // Assert: scrollIntoView が呼ばれない、エラーも発生しない
+    expect(scrollIntoViewMock).not.toHaveBeenCalled();
+
+    // Cleanup
+    document.getElementById = originalGetElementById;
+  });
+
+  it('cleans up timers when autoFocusName changes from true to false', () => {
+    // Arrange: spy on cancelAnimationFrame
+    const cancelAnimationFrameSpy = vi.spyOn(global, 'cancelAnimationFrame');
+
+    // Act
+    const { rerender } = render(<GroupCard {...defaultProps} autoFocusName={true} />);
+
+    // タイマーが動いている状態で props を変更
+    rerender(<GroupCard {...defaultProps} autoFocusName={false} />);
+
+    // Assert: cancelAnimationFrame が呼ばれている
+    expect(cancelAnimationFrameSpy).toHaveBeenCalled();
+
+    // Cleanup
+    cancelAnimationFrameSpy.mockRestore();
+  });
+
+  it('cleans up timers on unmount before rAF executes', () => {
+    // Arrange: spy on cancelAnimationFrame
+    const cancelAnimationFrameSpy = vi.spyOn(global, 'cancelAnimationFrame');
+
+    // Act: unmount before running timers
+    const { unmount } = render(<GroupCard {...defaultProps} autoFocusName={true} />);
+    unmount();
+
+    // Assert: cancelAnimationFrame が呼ばれている
+    expect(cancelAnimationFrameSpy).toHaveBeenCalled();
+
+    // Cleanup
+    cancelAnimationFrameSpy.mockRestore();
+  });
+
+  it('does not cause errors when unmounted during async operations', () => {
+    // Act: 非同期処理中にアンマウント
+    const { unmount } = render(<GroupCard {...defaultProps} autoFocusName={true} />);
+
+    // タイマーの途中でアンマウント
+    unmount();
+
+    // Assert: エラーなく完了することを確認
+    expect(() => vi.runAllTimers()).not.toThrow();
+  });
 });
