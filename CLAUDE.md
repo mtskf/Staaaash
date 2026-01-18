@@ -12,7 +12,7 @@ Chrome extension: Tab group management dashboard. Opens via extension icon/keybo
 
 **Entry Points**:
 
-- UI: `src/App.tsx` → `features/dashboard/Dashboard.tsx`
+- UI: `src/App.tsx` → `src/features/dashboard/Dashboard.tsx`
 - Background: `src/background/index.ts`
 
 **Data Model**:

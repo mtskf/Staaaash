@@ -37,7 +37,7 @@ Review the PR changes for:
 
 ## Output Format
 
-**CRITICAL**: Use `mcp__github_inline_comment__create_inline_comment` to add comments directly on specific code lines where documentation is missing or inaccurate.
+**Important**: When available, use `mcp__github_inline_comment__create_inline_comment` to add comments directly on specific code lines where documentation is missing or inaccurate. Otherwise, format feedback as inline-style comments in your report.
 
 For each issue:
 - Point to code or files that need documentation updates

@@ -9,7 +9,7 @@ You are reviewing a pull request. Follow these steps:
 1. **Get PR context**: Use `git diff` or GitHub API to identify changed files and understand the scope of changes
 2. **Understand the context**: Read the PR description and review the changes
 3. **Launch parallel reviews**: Start 5 specialized sub-agents to review different aspects simultaneously
-4. **Use inline comments**: Always use `mcp__github_inline_comment__create_inline_comment` to comment directly on specific code lines
+4. **Use inline comments**: When running in GitHub Actions with the inline comment tool available, use `mcp__github_inline_comment__create_inline_comment` to comment directly on specific code lines. In local environments, provide inline-style feedback in the summary report.
 5. **Summarize findings**: After all sub-agents complete, provide a brief summary
 
 **Note**: In GitHub Actions context, the PR number and repository information are automatically available. Use Bash with `gh pr view` or git commands to get PR details if needed.
@@ -60,9 +60,9 @@ If sub-agents encounter errors:
 
 ## Important Notes
 
-- **Always use inline comments** via `mcp__github_inline_comment__create_inline_comment`
+- **Use inline comments when available**: In GitHub Actions context, use `mcp__github_inline_comment__create_inline_comment` to comment on specific code lines. In local environments, format feedback as inline-style comments in your report.
 - Each sub-agent operates independently with its own context
-- Do NOT write long comments at the PR level - use inline comments for specific issues
-- Provide suggestions using GitHub's suggestion feature when possible
+- Do NOT write long comments at the PR level - use inline comments (or inline-style feedback) for specific issues
+- Provide suggestions using GitHub's suggestion feature when possible (in GitHub Actions context)
 - Be constructive and specific in feedback
 - Focus on changed files only, not the entire codebase

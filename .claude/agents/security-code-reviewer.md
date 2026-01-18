@@ -42,7 +42,7 @@ Review the PR changes for:
 
 ## Output Format
 
-**CRITICAL**: Use `mcp__github_inline_comment__create_inline_comment` to add comments directly on specific code lines where security issues are found.
+**Important**: When available, use `mcp__github_inline_comment__create_inline_comment` to add comments directly on specific code lines where security issues are found. Otherwise, format feedback as inline-style comments in your report.
 
 For each issue:
 - Clearly identify the security vulnerability

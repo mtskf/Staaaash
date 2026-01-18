@@ -47,6 +47,7 @@ Staaaash is a Chrome Extension dashboard for saving, organizing, and restoring t
 #### Key Modules
 
 - `storage.ts` - Chrome storage operations + Firebase sync orchestration
+- `sync.ts` - Firebase synchronization with retry logic, exponential backoff, and stale result detection
 - `sync-utils.ts` - 3-way merge logic (pure functions)
 - `logic.ts` - Group/tab operations (pure functions)
 - `useGroups.ts` - State management hook (React)
